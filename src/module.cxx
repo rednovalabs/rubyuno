@@ -1167,9 +1167,7 @@ void
 Init_runo(void)
 {
 	VALUE Runo;
-	
 	Runo = rb_define_module("Runo");
-	
 	rb_define_module_function(Runo, "get_component_context", (VALUE(*)(...))runo_getComponentContext, 0);
 	rb_define_module_function(Runo, "system_path_to_file_url", (VALUE(*)(...))runo_getFileURLFromSystemPath, 1);
 	rb_define_module_function(Runo, "file_url_to_system_path", (VALUE(*)(...))runo_getSystemPathFromFileURL, 1);

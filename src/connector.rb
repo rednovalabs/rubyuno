@@ -16,8 +16,8 @@
 #  under the License.
 
 module Uno
-  require_uno 'com.sun.star.connection.NoConnectException'
-  require_uno 'com.sun.star.connection.ConnectionSetupException'
+  Runo.uno_require 'com.sun.star.connection.NoConnectException'
+  Runo.uno_require 'com.sun.star.connection.ConnectionSetupException'
   
 #
 # Helps to connect to the office by RPC with UNO protocol.
@@ -50,9 +50,9 @@ module Uno
       n = 0
       begin
         c = self.connect(url, r)
-      rescue Uno::UnoException => e
+      rescue Runo::Com::Sun::Star::Uno::Exception => e
         raise e if e.uno_instance_of?(
-            Uno::Com::Sun::Star::Connection::ConnectionSetupException)
+            Runo::Com::Sun::Star::Connection::ConnectionSetupException)
         n += 1
         (raise NoConnectionError,"") if n > @@retry
         spawn(ENV, office, argument)
@@ -87,7 +87,7 @@ module Uno
     end
     
     def self.resolver_get
-      ctx = Uno.get_component_context
+      ctx = Runo.get_component_context
       return ctx.getServiceManager.createInstanceWithContext(
                       "com.sun.star.bridge.UnoUrlResolver", ctx)
     end

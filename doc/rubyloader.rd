@@ -42,13 +42,13 @@ Here is a simple UNO component written in Ruby.
      include Uno::UnoComponentBase
      
      # provides execution of the task.
-     include Uno::Com::Sun::Star::Task::XJobExecutor
+     include Runo::Com::Sun::Star::Task::XJobExecutor
      
      # provides information about this component.
      # The XServiceInfo module is extended in the loader 
      # module and it provides three methods based on 
      # the following two constants.
-     include Uno::Com::Sun::Star::Lang::XServiceInfo
+     include Runo::Com::Sun::Star::Lang::XServiceInfo
      
      IMPLE_NAME = "mytools.job.MyJob"
      SERVICE_NAMES = ["mytools.job.MyJob"]

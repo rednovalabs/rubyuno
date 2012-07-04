@@ -1,4 +1,4 @@
-# coding: utf-8
+# encoding: utf-8
 #
 #  Copyright 2011 Tsutomu Uchino
 # 
@@ -15,10 +15,12 @@
 #  specific language governing permissions and limitations
 #  under the License.
 
-module Uno
-  @@ctx = get_component_context # initialize runo internal
+require 'uno/runo'
 
-  require_uno 'com.sun.star.lang.XTypeProvider'
+module Uno
+  @@ctx = Runo.get_component_context # initialize runo internal
+
+  Runo.uno_require 'com.sun.star.lang.XTypeProvider'
 
   # Uno.msgbox(message="", title="", buttons=1, type="messbox", peer=nil) -> Integer
   # Shows message dialog on top frame window or specific window.
@@ -30,14 +32,14 @@ module Uno
   # @return [Fixnum] depends on buttons, see buttons
   def Uno.msgbox(message="", title="", buttons=1, type="messbox", peer=nil)
     unless peer
-      ctx = Uno.get_component_context
+      ctx = Runo.get_component_context
       desktop = ctx.getServiceManager.createInstanceWithContext(
                    "com.sun.star.frame.Desktop", ctx)
       doc = desktop.getCurrentComponent
       peer = doc.getCurrentController.getFrame.getContainerWindow if doc
     end
     if peer
-      rectangle = require_uno("com.sun.star.awt.Rectangle")
+      rectangle = Runo.uno_require("com.sun.star.awt.Rectangle")
       msgbox = peer.getToolkit.createMessageBox(
           peer, rectangle.new, type, buttons, title, message)
       n = msgbox.execute
@@ -91,7 +93,7 @@ module Uno
   # If it should be class itself, implement XTypeProvider interface to 
   # the class.
   module UnoBase
-    include Uno::Com::Sun::Star::Lang::XTypeProvider
+    include Runo::Com::Sun::Star::Lang::XTypeProvider
     def getTypes
       return Uno::UNO_TYPES.types self.class
     end

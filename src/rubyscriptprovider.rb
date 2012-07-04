@@ -1,4 +1,4 @@
-# coding: utf-8
+# encoding: utf-8
 #
 #  Copyright 2011 Tsutomu Uchino
 # 
@@ -37,10 +37,10 @@ module LoggerForRubyScriptProvider
       STDOUT
     when "FILE"
       Uno.to_system_path(
-        Uno.get_component_context.getServiceManager.
+        Runo.get_component_context.getServiceManager.
           createInstanceWithContext(
             "com.sun.star.util.PathSubstitution", 
-            Uno.get_component_context).
+            Runo.get_component_context).
               substituteVariables(LOG_DEFAULT_PATH, true))
     else
       ENV.fetch(LOADER_DEBUG_OUTPUT)
@@ -126,12 +126,12 @@ module RubyScriptProvider
     end
   end
 
-  Uno.require_uno 'com.sun.star.script.provider.XScriptContext'
+  Runo.uno_require 'com.sun.star.script.provider.XScriptContext'
   
   # class for XSCRIPTCONTEXT constant
   class ScriptContext
     include Uno::UnoBase
-    include Uno::Com::Sun::Star::Script::Provider::XScriptContext
+    include Runo::Com::Sun::Star::Script::Provider::XScriptContext
     
     def initialize(component_context, document, inv)
       @component_context = component_context
@@ -435,13 +435,13 @@ module RubyScriptProvider
     end
   end
   
-  Uno.require_uno 'com.sun.star.task.XInteractionHandler'
-  Uno.require_uno 'com.sun.star.ucb.XProgressHandler'
-  Uno.require_uno 'com.sun.star.ucb.XCommandEnvironment'
+  Runo.uno_require 'com.sun.star.task.XInteractionHandler'
+  Runo.uno_require 'com.sun.star.ucb.XProgressHandler'
+  Runo.uno_require 'com.sun.star.ucb.XCommandEnvironment'
   
   class DummyInteractionHandler
     include Uno::UnoBase
-    include Uno::Com::Sun::Star::Task::XInteractionHandler
+    include Runo::Com::Sun::Star::Task::XInteractionHandler
     
     def handle(request)
     end
@@ -449,7 +449,7 @@ module RubyScriptProvider
   
   class DummyProgressHandler
     include Uno::UnoBase
-    include Uno::Com::Sun::Star::Ucb::XProgressHandler
+    include Runo::Com::Sun::Star::Ucb::XProgressHandler
     
     def push(status)
     end
@@ -463,7 +463,7 @@ module RubyScriptProvider
   
   class CommandEnvironment
     include Uno::UnoBase
-    include Uno::Com::Sun::Star::Ucb::XCommandEnvironment
+    include Runo::Com::Sun::Star::Ucb::XCommandEnvironment
     
     def initialize
       @interaction_handler = DummyInteractionHandler.new
@@ -479,8 +479,8 @@ module RubyScriptProvider
     end
   end
   
-  Property = Uno.require_uno 'com.sun.star.beans.Property'
-  Command = Uno.require_uno 'com.sun.star.ucb.Command'
+  Property = Runo.uno_require 'com.sun.star.beans.Property'
+  Command = Runo.uno_require 'com.sun.star.ucb.Command'
   
   # get_document_model(ctx, uri) -> obj
   # Get document model from internal uri.
@@ -494,7 +494,7 @@ module RubyScriptProvider
     property = Property.new("DocumentModel", -1, Uno.get_type("void"), 1)
     command = Command.new(
         "getPropertyValues", -1, 
-        Uno::Any.new("[]com.sun.star.beans.Property", [property]))
+        Runo::Any.new("[]com.sun.star.beans.Property", [property]))
     env = CommandEnvironment.new
     begin
       result_set = content.execute(command, 0, env)
@@ -516,26 +516,26 @@ end
 
 module RubyScriptProvider
   
-  Uno.require_uno 'com.sun.star.beans.XPropertySet'
-  Uno.require_uno 'com.sun.star.container.XNameContainer'
-  Uno.require_uno 'com.sun.star.lang.XServiceInfo'
-  Uno.require_uno 'com.sun.star.script.browse.XBrowseNode'
-  Uno.require_uno 'com.sun.star.script.provider.XScriptProvider'
-  Uno.require_uno 'com.sun.star.script.provider.XScript'
-  Uno.require_uno 'com.sun.star.script.XInvocation'
-  ScriptFrameworkErrorException = Uno.require_uno(
+  Runo.uno_require 'com.sun.star.beans.XPropertySet'
+  Runo.uno_require 'com.sun.star.container.XNameContainer'
+  Runo.uno_require 'com.sun.star.lang.XServiceInfo'
+  Runo.uno_require 'com.sun.star.script.browse.XBrowseNode'
+  Runo.uno_require 'com.sun.star.script.provider.XScriptProvider'
+  Runo.uno_require 'com.sun.star.script.provider.XScript'
+  Runo.uno_require 'com.sun.star.script.XInvocation'
+  ScriptFrameworkErrorException = Runo.uno_require(
         "com.sun.star.script.provider.ScriptFrameworkErrorException")
-  RuntimeException = Uno.require_uno(
+  RuntimeException = Runo.uno_require(
         "com.sun.star.uno.RuntimeException")
-  BrowseNodeTypes = Uno.require_uno(
+  BrowseNodeTypes = Runo.uno_require(
         "com.sun.star.script.browse.BrowseNodeTypes")
   
   # base node for all script nodes
   class BaseNode
     include Uno::UnoBase
-    include Uno::Com::Sun::Star::Script::Browse::XBrowseNode
-    include Uno::Com::Sun::Star::Script::XInvocation
-    include Uno::Com::Sun::Star::Beans::XPropertySet
+    include Runo::Com::Sun::Star::Script::Browse::XBrowseNode
+    include Runo::Com::Sun::Star::Script::XInvocation
+    include Runo::Com::Sun::Star::Beans::XPropertySet
     
     NODE_TYPE = BrowseNodeTypes::CONTAINER
     
@@ -912,7 +912,7 @@ module RubyScriptProvider
   # Executes script.
   class RubyScript
     include Uno::UnoBase
-    include Uno::Com::Sun::Star::Script::Provider::XScript
+    include Runo::Com::Sun::Star::Script::Provider::XScript
     
     def initialize(capsule, file_name, func_name)
       @capsule = capsule
@@ -949,9 +949,9 @@ module RubyScriptProvider
   # The script provider for Ruby.
   class ScriptProviderImpl < BaseNode
     include Uno::UnoComponentBase
-    include Uno::Com::Sun::Star::Script::Provider::XScriptProvider
-    include Uno::Com::Sun::Star::Lang::XServiceInfo
-    include Uno::Com::Sun::Star::Container::XNameContainer
+    include Runo::Com::Sun::Star::Script::Provider::XScriptProvider
+    include Runo::Com::Sun::Star::Lang::XServiceInfo
+    include Runo::Com::Sun::Star::Container::XNameContainer
   
     IMPLE_NAME = "mytools.script.provider.ScriptProviderForRuby"
     SERVICE_NAMES = [

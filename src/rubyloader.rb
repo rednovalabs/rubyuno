@@ -30,9 +30,9 @@ module RubyLoader
       when "STDERR"
         STDERR
       when "FILE"
-        Uno.to_system_path(Uno.get_component_context.getServiceManager.
+        Uno.to_system_path(Runo.get_component_context.getServiceManager.
           createInstanceWithContext("com.sun.star.util.PathSubstitution", 
-            Uno.get_component_context).
+            Runo.get_component_context).
               substituteVariables(LOG_DEFAULT_PATH, true))
       else
         ENV.fetch(LOADER_DEBUG_OUTPUT)
@@ -69,7 +69,7 @@ module RubyLoader
 end
 
 module Uno
-  require_uno 'com.sun.star.lang.XServiceInfo'
+  RRuno.uno_require 'com.sun.star.lang.XServiceInfo'
   
   # All UNO components should be include UnoComponentBase module 
   # to its class and define two constants for it. If your class 
@@ -105,9 +105,9 @@ end
 # Loads implementations which are written in Ruby.
 module RubyLoader
   
-  Uno.require_uno 'com.sun.star.uno.Exception'
-  Uno.require_uno 'com.sun.star.lang.XSingleComponentFactory'
-  Uno.require_uno 'com.sun.star.loader.XImplementationLoader'
+  Runo.uno_require 'com.sun.star.uno.Exception'
+  Runo.uno_require 'com.sun.star.lang.XSingleComponentFactory'
+  Runo.uno_require 'com.sun.star.loader.XImplementationLoader'
   
   def self.error_to_str(e)
     return %Q!#{e}\n#{e.backtrace.join("\n")}\n!
@@ -117,8 +117,8 @@ module RubyLoader
   # UNO component.
   class SingleComponentFactory
     include Uno::UnoBase
-    include Uno::Com::Sun::Star::Lang::XServiceInfo
-    include Uno::Com::Sun::Star::Lang::XSingleComponentFactory
+    include Runo::Com::Sun::Star::Lang::XServiceInfo
+    include Runo::Com::Sun::Star::Lang::XSingleComponentFactory
     
     def initialize(klass, imple_name, url)
       @klass = klass
@@ -184,11 +184,11 @@ module RubyLoader
             RubyLoader.error_to_str(e)
         puts message
         RubyLoader.log.error(@klass.to_s) {message}
-        ex = Uno::Com::Sun::Star::Uno::Exception.new(message, nil)
+        ex = Runo::Com::Sun::Star::Uno::Exception.new(message, nil)
         raise Uno::UnoError, ex
       end
       unless @klass
-        ex = Uno::Com::Sun::Star::Uno::Exception.new(
+        ex = Runo::Com::Sun::Star::Uno::Exception.new(
             "#{@imple_name} was not found in #{@url}", nil)
         raise Uno::UnoError, ex
       end
@@ -279,8 +279,8 @@ module RubyLoader
   # This class is refered from C++ loader implementation.
   class RubyLoaderImpl
     include Uno::UnoBase
-    include Uno::Com::Sun::Star::Loader::XImplementationLoader
-    include Uno::Com::Sun::Star::Lang::XServiceInfo
+    include Runo::Com::Sun::Star::Loader::XImplementationLoader
+    include Runo::Com::Sun::Star::Lang::XServiceInfo
     
     IMPLE_NAME = "mytools.loader.Ruby"
     SERVICE_NAMES = ["com.sun.star.loader.Ruby"]
