@@ -19,9 +19,9 @@
 require 'rbconfig'
 require 'rake/packagetask'
 require 'rake/clean'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 require 'rubygems'
-require 'rake/rdoctask'
+require 'rdoc/task'
 
 # Build packages.
 # Gem file for RPC.
@@ -40,7 +40,7 @@ base_path = ENV['OFFICE_BASE_PROGRAM_PATH']
 
 
 # Building environment
-c = Config::CONFIG
+c = RbConfig::CONFIG
 
 cc = c['CC']
 link = c['LDSHAREDXX']
@@ -145,6 +145,9 @@ CLEAN.include(MODULE_OBJS)
 CLEAN.include(LOADER_OBJS)
 CLEAN.include(LIB_OBJS)
 CLEAN.include(HTML_DOCS)
+CLEAN.include(PKG_DIR)
+CLEAN.include(LIB_DIR)
+CLEAN.include(CPPU_INCLUDE)
 
 directory LIB_DIR
 directory PKG_DIR
@@ -160,6 +163,7 @@ if host.include? 'linux'
   local_link_lib = "-L#{LIB_DIR}"
   lib = "-L#{c['libdir']}"
   
+  out_flag = "-o"
   coutflag = c['COUTFLAG']
   optflags = "-O1"
   cflags = "-fPIC"
@@ -250,8 +254,7 @@ task :default => [:all]
 
 task :all => [
   :package, 
-  :loader, :provider, 
-  :rd_docs
+  :loader, :provider
 ]
 
 
@@ -340,7 +343,7 @@ RubyUNO is native bridge between Ruby and UNO.
 EOF
 end
 
-Rake::GemPackageTask.new(spec) do |t|
+Gem::PackageTask.new(spec) do |t|
 end
 
 file GEM_LIB_UNO_RB => [LIB_DIR] do |t|
