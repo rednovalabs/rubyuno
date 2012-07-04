@@ -1,5 +1,5 @@
 
-#include "runo_impl.hxx"
+#include "runo.hxx"
 
 #include <osl/thread.h>
 #include <typelib/typedescription.hxx>
@@ -324,7 +324,7 @@ VALUE Runtime::any_to_VALUE(const Any &a) const throw (RuntimeException)
 /*
  * Convert Ruby VALUE to UNO Any.
  */
-Any Runtime::value_to_any(VALUE value) const
+Any Runtime::value_to_any(VALUE value) const throw (com::sun::star::uno::RuntimeException)
 {
 //printf("value_to_any: %s\n", rb_obj_classname(value));
 	Any a;

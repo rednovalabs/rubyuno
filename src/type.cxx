@@ -1,5 +1,5 @@
 
-#include "runo_impl.hxx"
+#include "runo.hxx"
 
 #include <osl/thread.h>
 #include <rtl/ustrbuf.hxx>
@@ -209,7 +209,7 @@ set_runo_struct(const Any &object, const Reference< XSingleServiceFactory > &xFa
  * Create or get modules according to name.
  */
 VALUE
-create_module(const OUString name)
+create_module(const OUString &name)
 {
 	VALUE parent;
 	parent = get_module_class();
@@ -252,7 +252,7 @@ create_module(const OUString name)
  * Find and define class (for structs and exceptions) or module (for interfaces).
  */
 VALUE
-find_class(const OUString name, typelib_TypeClass typeClass)
+find_class(const OUString &name, typelib_TypeClass typeClass)
 {
 	ID id;
 	VALUE module;
