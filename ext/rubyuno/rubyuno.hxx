@@ -16,8 +16,8 @@
  * 
  *************************************************************/
 
-#ifndef _RUNO_HXX_
-#define _RUNO_HXX_
+#ifndef _RUBYUNO_HXX_
+#define _RUBYUNO_HXX_
 
 #include "ruby.h"
 #include <ruby/st.h>
@@ -41,9 +41,9 @@
 #include <com/sun/star/uno/XComponentContext.hpp>
 
 #ifdef WIN32
-#  define RUNO_DLLEXPORT __declspec(dllexport)
+#  define RUBYUNO_DLLEXPORT __declspec(dllexport)
 #else
-#  define RUNO_DLLEXPORT
+#  define RUBYUNO_DLLEXPORT
 #endif
 
 #define UNO_TYPE_NAME "UNO_TYPE_NAME"
@@ -68,7 +68,7 @@
 #define OUSTRING_CONST(str)\
     OUString(RTL_CONSTASCII_USTRINGPARAM(str))
 
-namespace runo
+namespace rubyuno
 {
 
 /*
@@ -77,7 +77,7 @@ namespace runo
 typedef struct
 {
   com::sun::star::uno::Any value;
-} RunoValue;
+} RubyunoValue;
 
 /*
  * Wrappes UNO interface.
@@ -86,7 +86,7 @@ typedef struct
 {
     com::sun::star::uno::Reference < com::sun::star::script::XInvocation2 > invocation;
     com::sun::star::uno::Any wrapped;
-} RunoInternal;
+} RubyunoInternal;
 
 /* module.cxx */
 
@@ -126,17 +126,17 @@ VALUE get_uno_error_class(void);
 VALUE find_interface(com::sun::star::uno::Reference< com::sun::star::reflection::XTypeDescription > &xTd);
 void raise_rb_exception(const com::sun::star::uno::Any &a);
 
-VALUE new_runo_object(const com::sun::star::uno::Any &a, const com::sun::star::uno::Reference< com::sun::star::lang::XSingleServiceFactory > &xFactory);
-VALUE new_runo_proxy(const com::sun::star::uno::Any &object, const com::sun::star::uno::Reference< com::sun::star::lang::XSingleServiceFactory > &xFactory, VALUE klass);
-void set_runo_struct(const com::sun::star::uno::Any &object, const com::sun::star::uno::Reference< com::sun::star::lang::XSingleServiceFactory > &xFactory, VALUE &self);
+VALUE new_rubyuno_object(const com::sun::star::uno::Any &a, const com::sun::star::uno::Reference< com::sun::star::lang::XSingleServiceFactory > &xFactory);
+VALUE new_rubyuno_proxy(const com::sun::star::uno::Any &object, const com::sun::star::uno::Reference< com::sun::star::lang::XSingleServiceFactory > &xFactory, VALUE klass);
+void set_rubyuno_struct(const com::sun::star::uno::Any &object, const com::sun::star::uno::Reference< com::sun::star::lang::XSingleServiceFactory > &xFactory, VALUE &self);
 
 /* define module according to UNO module name. */
 VALUE create_module(const ::rtl::OUString &name);
 /* find struct or exception class, class is created if not found */
 VALUE find_class(const ::rtl::OUString &name, typelib_TypeClass typeClass);
 
-VALUE runo_new_type(const rtl::OUString &typeName, const VALUE &type_class);
-VALUE runo_new_enum(const rtl::OUString &typeName, const rtl::OUString &value);
+VALUE rubyuno_new_type(const rtl::OUString &typeName, const VALUE &type_class);
+VALUE rubyuno_new_enum(const rtl::OUString &typeName, const rtl::OUString &value);
 
 rtl::OUString valueToOUString(const void *pVal, typelib_TypeDescriptionReference *pTypeRef);
 
@@ -177,7 +177,7 @@ typedef struct RuntimeImpl
 } RuntimeImpl;
 
 
-class RUNO_DLLEXPORT Runtime
+class RUBYUNO_DLLEXPORT Runtime
 {
     RuntimeImpl *impl;
 public:
@@ -196,7 +196,7 @@ public:
 };
 
 
-class RUNO_DLLEXPORT Adapter : public cppu::WeakImplHelper2 < com::sun::star::script::XInvocation, com::sun::star::lang::XUnoTunnel >
+class RUBYUNO_DLLEXPORT Adapter : public cppu::WeakImplHelper2 < com::sun::star::script::XInvocation, com::sun::star::lang::XUnoTunnel >
 {
     VALUE m_wrapped;
     com::sun::star::uno::Sequence< com::sun::star::uno::Type > m_types;

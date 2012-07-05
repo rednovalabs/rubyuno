@@ -1,5 +1,5 @@
 
-#include "runo.hxx"
+#include "rubyuno.hxx"
 
 #include <osl/thread.h>
 #include <rtl/ustrbuf.hxx>
@@ -23,18 +23,18 @@ using rtl::OUString;
 using rtl::OUStringToOString;
 using rtl::OUStringBuffer;
 
-namespace runo
+namespace rubyuno
 {
 
 VALUE
 get_module_class()
 {
-	return rb_const_get(rb_cObject, rb_intern("Runo"));
+	return rb_const_get(rb_cObject, rb_intern("Rubyuno"));
 	ID id;
-	id = rb_intern("Runo");
+	id = rb_intern("Rubyuno");
 	if (rb_const_defined(rb_cObject, id))
 		return rb_const_get(rb_cObject, id);
-	rb_raise(rb_eRuntimeError, "module undefined (Runo)");
+	rb_raise(rb_eRuntimeError, "module undefined (Rubyuno)");
 }
 
 VALUE
@@ -54,7 +54,7 @@ get_class(const char *name)
 VALUE
 get_proxy_class()
 {
-	return get_class("RunoProxy");
+	return get_class("RubyunoProxy");
 }
 
 VALUE
@@ -94,30 +94,30 @@ get_interface_class()
 	VALUE module = get_module_class();
 	id = rb_intern("Com");
 	if (!rb_const_defined(module, id))
-		rb_raise(rb_eRuntimeError, "unknown error (Runo::Com)");
+		rb_raise(rb_eRuntimeError, "unknown error (Rubyuno::Com)");
 	VALUE com_module = rb_const_get(module, id);
 	id = rb_intern("Sun");
 	if (!rb_const_defined(com_module, id))
-		rb_raise(rb_eRuntimeError, "unknown error (Runo::Com::Sun)");
+		rb_raise(rb_eRuntimeError, "unknown error (Rubyuno::Com::Sun)");
 	VALUE sun_module = rb_const_get(com_module, id);
 	id = rb_intern("Star");
 	if (!rb_const_defined(sun_module, id))
-		rb_raise(rb_eRuntimeError, "unknown error (Runo::Com::Sun::Star)");
+		rb_raise(rb_eRuntimeError, "unknown error (Rubyuno::Com::Sun::Star)");
 	VALUE star_module = rb_const_get(sun_module, id);
 	id = rb_intern("Uno");
 	if (!rb_const_defined(star_module, id))
-		rb_raise(rb_eRuntimeError, "unknown error (Runo::Com::Sun::Star::Uno)");
+		rb_raise(rb_eRuntimeError, "unknown error (Rubyuno::Com::Sun::Star::Uno)");
 	VALUE uno_module = rb_const_get(star_module, id);
 	id = rb_intern("XInterface");
 	if (!rb_const_defined(uno_module, id))
-		rb_raise(rb_eRuntimeError, "unknown error (Runo::Com::Sun::Star::Uno::XInterface)");
+		rb_raise(rb_eRuntimeError, "unknown error (Rubyuno::Com::Sun::Star::Uno::XInterface)");
 	return rb_const_get(uno_module, id);
 }
 
 VALUE
 get_struct_class()
 {
-	return get_class("RunoStruct");
+	return get_class("RubyunoStruct");
 }
 
 VALUE
@@ -127,23 +127,23 @@ get_exception_class()
 	VALUE module = get_module_class();
 	id = rb_intern("Com");
 	if (!rb_const_defined(module, id))
-		rb_raise(rb_eRuntimeError, "unknown error (Runo::Com)");
+		rb_raise(rb_eRuntimeError, "unknown error (Rubyuno::Com)");
 	VALUE com_module = rb_const_get(module, id);
 	id = rb_intern("Sun");
 	if (!rb_const_defined(com_module, id))
-		rb_raise(rb_eRuntimeError, "unknown error (Runo::Com::Sun)");
+		rb_raise(rb_eRuntimeError, "unknown error (Rubyuno::Com::Sun)");
 	VALUE sun_module = rb_const_get(com_module, id);
 	id = rb_intern("Star");
 	if (!rb_const_defined(sun_module, id))
-		rb_raise(rb_eRuntimeError, "unknown error (Runo::Com::Sun::Star)");
+		rb_raise(rb_eRuntimeError, "unknown error (Rubyuno::Com::Sun::Star)");
 	VALUE star_module = rb_const_get(sun_module, id);
 	id = rb_intern("Uno");
 	if (!rb_const_defined(star_module, id))
-		rb_raise(rb_eRuntimeError, "unknown error (Runo::Com::Sun::Star::Uno)");
+		rb_raise(rb_eRuntimeError, "unknown error (Rubyuno::Com::Sun::Star::Uno)");
 	VALUE uno_module = rb_const_get(star_module, id);
 	id = rb_intern("Exception");
 	if (!rb_const_defined(uno_module, id))
-		rb_raise(rb_eRuntimeError, "unknown error (Runo::Com::Sun::Star::Uno::Exception)");
+		rb_raise(rb_eRuntimeError, "unknown error (Rubyuno::Com::Sun::Star::Uno::Exception)");
 	return rb_const_get(uno_module, id);
 }
 
@@ -162,46 +162,46 @@ new_Char(VALUE character)
 
 
 VALUE
-new_runo_object(const Any &a, const Reference< XSingleServiceFactory > &xFactory)
+new_rubyuno_object(const Any &a, const Reference< XSingleServiceFactory > &xFactory)
 {
 	Reference< XInterface > tmp_interface;
 	a >>= tmp_interface;
 	if (!tmp_interface.is())
 		return Qnil;
-	return new_runo_proxy(a, xFactory, get_proxy_class());
+	return new_rubyuno_proxy(a, xFactory, get_proxy_class());
 }
 
 VALUE
-new_runo_proxy(const Any &object, const Reference< XSingleServiceFactory > &xFactory, VALUE klass)
+new_rubyuno_proxy(const Any &object, const Reference< XSingleServiceFactory > &xFactory, VALUE klass)
 {
 	Sequence< Any > arguments(1);
 	arguments[0] <<= object;
 	Reference< XInvocation2 > xinvocation(xFactory->createInstanceWithArguments(arguments), UNO_QUERY);
 	
 	VALUE obj;
-	RunoInternal *runo;
-	runo = new RunoInternal();
+	RubyunoInternal *rubyuno;
+	rubyuno = new RubyunoInternal();
 	obj = rb_obj_alloc(klass);
-	DATA_PTR(obj) = runo;
+	DATA_PTR(obj) = rubyuno;
 	
-	runo->wrapped = object;
-	runo->invocation = xinvocation;
+	rubyuno->wrapped = object;
+	rubyuno->invocation = xinvocation;
 	return obj;
 }
 
 void
-set_runo_struct(const Any &object, const Reference< XSingleServiceFactory > &xFactory, VALUE &self)
+set_rubyuno_struct(const Any &object, const Reference< XSingleServiceFactory > &xFactory, VALUE &self)
 {
 	Sequence< Any > arguments(1);
 	arguments[0] <<= object;
 	
 	Reference< XInvocation2 > xinvocation(xFactory->createInstanceWithArguments(arguments), UNO_QUERY);
 	
-	RunoInternal *runo;
-	Data_Get_Struct(self, RunoInternal, runo);
+	RubyunoInternal *rubyuno;
+	Data_Get_Struct(self, RubyunoInternal, rubyuno);
 	
-	runo->wrapped = object;
-	runo->invocation = xinvocation;
+	rubyuno->wrapped = object;
+	rubyuno->invocation = xinvocation;
 }
 
 

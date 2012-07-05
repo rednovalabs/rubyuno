@@ -1,5 +1,5 @@
 
-#include "runo.hxx"
+#include "rubyuno.hxx"
 
 #include <cppuhelper/typeprovider.hxx>
 #include <rtl/ustrbuf.hxx>
@@ -26,7 +26,7 @@ using rtl::OUStringBuffer;
 using namespace com::sun::star::uno;
 using namespace com::sun::star::reflection;
 
-namespace runo
+namespace rubyuno
 {
 
 ID
@@ -71,9 +71,9 @@ raiseUnoException(VALUE arg)
 	if (rb_obj_is_kind_of(exc, get_exception_class()))
 	{
 		Any a;
-		RunoInternal *runo;
-		Data_Get_Struct(exc, RunoInternal, runo);
-		Reference < XMaterialHolder > xHolder(runo->invocation, UNO_QUERY);
+		RubyunoInternal *rubyuno;
+		Data_Get_Struct(exc, RubyunoInternal, rubyuno);
+		Reference < XMaterialHolder > xHolder(rubyuno->invocation, UNO_QUERY);
 		if (xHolder.is())
 			throw xHolder->getMaterial().getValue();
 	}
@@ -97,12 +97,12 @@ Adapter::getOutParamIndexes(const OUString &methodName)
 	
 	if (! introspection.is())
 	{
-		throw RuntimeException(OUString(RTL_CONSTASCII_USTRINGPARAM("runo: failed to create adapter.")), Reference< XInterface >());
+		throw RuntimeException(OUString(RTL_CONSTASCII_USTRINGPARAM("rubyuno: failed to create adapter.")), Reference< XInterface >());
 	}
 	Reference< XIdlMethod > method = introspection->getMethod(methodName, com::sun::star::beans::MethodConcept::ALL);
 	if (! method.is())
 	{
-		throw RuntimeException(OUString(RTL_CONSTASCII_USTRINGPARAM("runo: Failed to get reflection for ")) + methodName, Reference< XInterface >());
+		throw RuntimeException(OUString(RTL_CONSTASCII_USTRINGPARAM("rubyuno: Failed to get reflection for ")) + methodName, Reference< XInterface >());
 	}
 	Sequence< ParamInfo > info = method->getParameterInfos();
 	
@@ -182,12 +182,12 @@ Adapter::invoke(const OUString &  aFunctionName, const Sequence < Any > &aParams
 				Sequence< Any > seq;
 				if (! (retAny >>= seq))
 				{
-					throw RuntimeException(OUString(RTL_CONSTASCII_USTRINGPARAM("runo: failed to extract out values for method ")) + aFunctionName, Reference< XInterface >());
+					throw RuntimeException(OUString(RTL_CONSTASCII_USTRINGPARAM("rubyuno: failed to extract out values for method ")) + aFunctionName, Reference< XInterface >());
 				}
 			
 				if (! (seq.getLength() == aOutParamIndex.getLength() + 1))
 				{
-					throw RuntimeException(OUString( RTL_CONSTASCII_USTRINGPARAM("runo: illegal number of out values for method ")) + aFunctionName, Reference< XInterface >());
+					throw RuntimeException(OUString( RTL_CONSTASCII_USTRINGPARAM("rubyuno: illegal number of out values for method ")) + aFunctionName, Reference< XInterface >());
 				}
 			
 				aOutParam.realloc(aOutParamIndex.getLength());

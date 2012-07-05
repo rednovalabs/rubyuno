@@ -16,7 +16,7 @@
  * 
  *************************************************************/
 
-#include "runo.hxx"
+#include "rubyuno.hxx"
 
 #include <osl/module.hxx>
 #include <osl/process.h>
@@ -40,7 +40,7 @@ using rtl::OUStringBuffer;
 #define IMPLE_NAME "mytools.loader.Ruby"
 #define SERVICE_NAME "com.sun.star.loader.Ruby"
 
-namespace runoloader
+namespace rubyunoloader
 {
 
 static void 
@@ -85,11 +85,11 @@ createInstanceWithContext(const Reference< XComponentContext > &ctx)
         ruby_init();
         ruby_init_loadpath();
         
-        if (! runo::Runtime::isInitialized())
+        if (! rubyuno::Runtime::isInitialized())
         {
             try
             {
-                runo::Runtime::initialize(ctx);
+                rubyuno::Runtime::initialize(ctx);
             }
             catch (com::sun::star::uno::RuntimeException &e)
             {
@@ -98,14 +98,14 @@ createInstanceWithContext(const Reference< XComponentContext > &ctx)
         }
         VALUE argv = rb_ary_new2(3);
         buf.append(sysPath);
-        buf.appendAscii("/runo.so");
-        rb_ary_store(argv, 0, runo::oustring_to_rb_str(buf.makeStringAndClear()));
+        buf.appendAscii("/rubyuno.so");
+        rb_ary_store(argv, 0, rubyuno::oustring_to_rb_str(buf.makeStringAndClear()));
         buf.append(sysPath);
         buf.appendAscii("/lib.rb");
-        rb_ary_store(argv, 1, runo::oustring_to_rb_str(buf.makeStringAndClear()));
+        rb_ary_store(argv, 1, rubyuno::oustring_to_rb_str(buf.makeStringAndClear()));
         buf.append(sysPath);
         buf.appendAscii("/rubyloader.rb");
-        rb_ary_store(argv, 2, runo::oustring_to_rb_str(buf.makeStringAndClear()));
+        rb_ary_store(argv, 2, rubyuno::oustring_to_rb_str(buf.makeStringAndClear()));
         int state;
         rb_protect((VALUE(*)(VALUE))load_modules, argv, &state);
         ruby_state = state; // 0 sucess
@@ -114,9 +114,9 @@ createInstanceWithContext(const Reference< XComponentContext > &ctx)
             rb_p(rb_gv_get("$!"));
         }
     }
-    if (ruby_state == 0 && runo::Runtime::isInitialized())
+    if (ruby_state == 0 && rubyuno::Runtime::isInitialized())
     {
-        runo::Runtime runtime;
+        rubyuno::Runtime runtime;
         VALUE loader_module = rb_const_get(
                     rb_cObject, rb_intern("RubyLoader"));
         VALUE loader_imple = rb_const_get(
@@ -144,14 +144,14 @@ getSupportedServiceNames()
     return Sequence< OUString >(&name, 1);
 }
 
-} // runoloader
+} // rubyunoloader
 
 static struct cppu::ImplementationEntry g_entries[] = 
 {
     {
-        runoloader::createInstanceWithContext, 
-        runoloader::getImplementationName, 
-        runoloader::getSupportedServiceNames, 
+        rubyunoloader::createInstanceWithContext, 
+        rubyunoloader::getImplementationName, 
+        rubyunoloader::getSupportedServiceNames, 
         cppu::createSingleComponentFactory, 
         0, 
         0

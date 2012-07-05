@@ -1,5 +1,5 @@
 
-#include "runo.hxx"
+#include "rubyuno.hxx"
 
 #include <osl/thread.h>
 #include <typelib/typedescription.hxx>
@@ -31,7 +31,7 @@ using rtl::OUStringToOString;
 
 using namespace com::sun::star::uno;
 
-namespace runo
+namespace rubyuno
 {
 
 static RuntimeImpl *gImpl;
@@ -59,7 +59,7 @@ void Runtime::initialize(const Reference< XComponentContext > &ctx) throw (Runti
 {
 	if (gImpl)
 	{
-		throw RuntimeException(OUString(RTL_CONSTASCII_USTRINGPARAM("runo runtime is already initialized.")), Reference< XInterface >());
+		throw RuntimeException(OUString(RTL_CONSTASCII_USTRINGPARAM("rubyuno runtime is already initialized.")), Reference< XInterface >());
 	}
 	gImpl = new RuntimeImpl();
 	
@@ -73,7 +73,7 @@ void Runtime::initialize(const Reference< XComponentContext > &ctx) throw (Runti
 	if (!gImpl->xInvocation.is())
 	{
 		throw RuntimeException(
-			OUString(RTL_CONSTASCII_USTRINGPARAM("runo: failed to instantiate com.sun.star.script.Invocation.")), Reference< XInterface >());
+			OUString(RTL_CONSTASCII_USTRINGPARAM("rubyuno: failed to instantiate com.sun.star.script.Invocation.")), Reference< XInterface >());
 	}
 	gImpl->xIntrospection = Reference < XIntrospection > (
 			ctx->getServiceManager()->createInstanceWithContext(
@@ -82,7 +82,7 @@ void Runtime::initialize(const Reference< XComponentContext > &ctx) throw (Runti
 	if (!gImpl->xIntrospection.is())
 	{
 		throw RuntimeException(
-			OUString(RTL_CONSTASCII_USTRINGPARAM("runo: failed to instantiate com.sun.star.beans.Instrospection")), Reference< XInterface >());
+			OUString(RTL_CONSTASCII_USTRINGPARAM("rubyuno: failed to instantiate com.sun.star.beans.Instrospection")), Reference< XInterface >());
 	}
 	gImpl->xCoreReflection = Reference < XIdlReflection > (
 			ctx->getServiceManager()->createInstanceWithContext(
@@ -91,7 +91,7 @@ void Runtime::initialize(const Reference< XComponentContext > &ctx) throw (Runti
 	if (!gImpl->xCoreReflection.is())
 	{
 		throw RuntimeException(
-			OUString(RTL_CONSTASCII_USTRINGPARAM("runo: failfed to instantiate com.sun.star.reflection.CoreReflection.")), Reference< XInterface >());
+			OUString(RTL_CONSTASCII_USTRINGPARAM("rubyuno: failfed to instantiate com.sun.star.reflection.CoreReflection.")), Reference< XInterface >());
 	}
 	gImpl->xTypeConverter = Reference < XTypeConverter > (
 			ctx->getServiceManager()->createInstanceWithContext(
@@ -100,7 +100,7 @@ void Runtime::initialize(const Reference< XComponentContext > &ctx) throw (Runti
 	if (!gImpl->xTypeConverter.is())
 	{
 		throw RuntimeException(
-			OUString(RTL_CONSTASCII_USTRINGPARAM("runo: failfed to instantiate com.sun.star.script.Converter.")), Reference< XInterface >());
+			OUString(RTL_CONSTASCII_USTRINGPARAM("rubyuno: failfed to instantiate com.sun.star.script.Converter.")), Reference< XInterface >());
 	}
 	gImpl->xAdapterFactory = Reference < XInvocationAdapterFactory2 > (
 			ctx->getServiceManager()->createInstanceWithContext(
@@ -109,7 +109,7 @@ void Runtime::initialize(const Reference< XComponentContext > &ctx) throw (Runti
 	if (!gImpl->xTypeConverter.is())
 	{
 		throw RuntimeException(
-			OUString(RTL_CONSTASCII_USTRINGPARAM("runo: failed to instantiate com.sun.star.script.InvocationAdapterFactory.")), Reference< XInterface >());
+			OUString(RTL_CONSTASCII_USTRINGPARAM("rubyuno: failed to instantiate com.sun.star.script.InvocationAdapterFactory.")), Reference< XInterface >());
 	}
 	Any tdm = ctx->getValueByName(
 			OUString(RTL_CONSTASCII_USTRINGPARAM("/singletons/com.sun.star.reflection.theTypeDescriptionManager")));
@@ -117,7 +117,7 @@ void Runtime::initialize(const Reference< XComponentContext > &ctx) throw (Runti
 	if (! gImpl->xTypeDescription.is())
 	{
 		throw RuntimeException(
-			OUString(RTL_CONSTASCII_USTRINGPARAM("runo: failed to get /singletons/com.sun.star.reflection.theTypeDescriptionManager.")), Reference< XInterface >());
+			OUString(RTL_CONSTASCII_USTRINGPARAM("rubyuno: failed to get /singletons/com.sun.star.reflection.theTypeDescriptionManager.")), Reference< XInterface >());
 	}
 	gImpl->valid = true;
 }
@@ -247,7 +247,7 @@ VALUE Runtime::any_to_VALUE(const Any &a) const throw (RuntimeException)
 			if (NIL_P(klass))
 				rb_raise(rb_eRuntimeError, "failed to create class (%s)", OUStringToOString(a.getValueTypeName(), RTL_TEXTENCODING_ASCII_US).getStr());
 			
-			return new_runo_proxy(a, runtime.getImpl()->xInvocation, klass);
+			return new_rubyuno_proxy(a, runtime.getImpl()->xInvocation, klass);
 		}
 	case typelib_TypeClass_SEQUENCE:
 		{
@@ -286,7 +286,7 @@ VALUE Runtime::any_to_VALUE(const Any &a) const throw (RuntimeException)
 		}
 	case typelib_TypeClass_INTERFACE:
 		{
-			return new_runo_object(a, getImpl()->xInvocation);
+			return new_rubyuno_object(a, getImpl()->xInvocation);
 		}
 	case typelib_TypeClass_TYPE:
 		{
@@ -425,18 +425,18 @@ Any Runtime::value_to_any(VALUE value) const throw (com::sun::star::uno::Runtime
 		{
 			if (rb_obj_is_kind_of(value, get_proxy_class()))
 			{
-				RunoInternal *runo;
-				Data_Get_Struct(value, RunoInternal, runo);
-				if (runo)
+				RubyunoInternal *rubyuno;
+				Data_Get_Struct(value, RubyunoInternal, rubyuno);
+				if (rubyuno)
 				{
-					a = runo->wrapped;
+					a = rubyuno->wrapped;
 				}
 			}
 			else if (rb_obj_is_kind_of(value, get_enum_class()) ||
 					rb_obj_is_kind_of(value, get_type_class()))
 			{
-				RunoValue *ptr;
-				Data_Get_Struct(value, RunoValue, ptr);
+				RubyunoValue *ptr;
+				Data_Get_Struct(value, RubyunoValue, ptr);
 				if (ptr)
 				{
 					a <<= ptr->value;
@@ -445,9 +445,9 @@ Any Runtime::value_to_any(VALUE value) const throw (com::sun::star::uno::Runtime
 			else if (rb_obj_is_kind_of(value, get_struct_class()) ||
 					rb_obj_is_kind_of(value, get_exception_class()))
 			{
-				RunoInternal *runo;
-				Data_Get_Struct(value, RunoInternal, runo);
-				Reference< XMaterialHolder > xholder(runo->invocation, UNO_QUERY);
+				RubyunoInternal *rubyuno;
+				Data_Get_Struct(value, RubyunoInternal, rubyuno);
+				Reference< XMaterialHolder > xholder(rubyuno->invocation, UNO_QUERY);
 				if (xholder.is())
 					a = xholder->getMaterial();
 				else
@@ -471,10 +471,10 @@ Any Runtime::value_to_any(VALUE value) const throw (com::sun::star::uno::Runtime
 			}
 			else if (rb_obj_is_kind_of(value, get_char_class()))
 			{
-				RunoInternal *runo;
-				Data_Get_Struct(value, RunoInternal, runo);
+				RubyunoInternal *rubyuno;
+				Data_Get_Struct(value, RubyunoInternal, rubyuno);
 				sal_Unicode c;
-				runo->wrapped >>= c;
+				rubyuno->wrapped >>= c;
 				a.setValue(&c, getCharCppuType());
 			}
 			break;

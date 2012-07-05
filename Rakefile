@@ -80,6 +80,7 @@ RD_EXT = 'rd'
 
 # Local directories
 SRC_DIR = "./src"
+EXT_DIR = "./ext/rubyuno"
 LIB_DIR = "./lib"
 PKG_DIR = "./pkg"
 DOC_DIR = "./doc"
@@ -118,8 +119,8 @@ SCRIPT_PKG_FULL_NAME = "#{SCRIPT_PKG_NAME}-#{VERSION}.#{OXT_EXT}"
 SCRIPT_PKG_DIR = "#{PKG_DIR}/#{SCRIPT_PKG_DIR_NAME}"
 SCRIPT_PKG = "#{PKG_DIR}/#{SCRIPT_PKG_FULL_NAME}"
 
-UNO_RB = "uno.rb"
-CONNECTOR_RB = "connector.rb"
+UNO_RB = "rubyuno.rb"
+CONNECTOR_RB = "rubyuno/connector.rb"
 LIB_RB = "lib.rb"
 
 # Local files
@@ -128,10 +129,10 @@ LIB_UNO_DIR = "#{LIB_DIR}/uno"
 
 MODULE_DLL = "runo.#{LIB_EXT}"
 
-ALL_SRCS = FileList["#{SRC_DIR}/*.cxx"]
-MODULE_SRCS = FileList["#{SRC_DIR}/module.cxx"]
-LOADER_SRCS = FileList["#{SRC_DIR}/loader.cxx"]
-LIB_SRCS = FileList["#{SRC_DIR}/*.cxx"] - MODULE_SRCS - LOADER_SRCS
+ALL_SRCS = FileList["#{EXT_DIR}/*.cxx"]
+MODULE_SRCS = FileList["#{EXT_DIR}/module.cxx"]
+LOADER_SRCS = FileList["#{EXT_DIR}/loader.cxx"]
+LIB_SRCS = FileList["#{EXT_DIR}/*.cxx"] - MODULE_SRCS - LOADER_SRCS
 
 ALL_OBJS = ALL_SRCS.ext(OBJ_EXT)
 MODULE_OBJS = MODULE_SRCS.ext(OBJ_EXT)
@@ -146,7 +147,6 @@ CLEAN.include(LOADER_OBJS)
 CLEAN.include(LIB_OBJS)
 CLEAN.include(HTML_DOCS)
 CLEAN.include(PKG_DIR)
-CLEAN.include(LIB_DIR)
 CLEAN.include(CPPU_INCLUDE)
 
 directory LIB_DIR
@@ -225,8 +225,8 @@ elsif host.include? 'mswin'
   
   sdk_libs = " icppuhelper.lib icppu.lib isal.lib isalhelper.lib msvcprt.lib msvcrt.lib kernel32.lib" # 
   
-  module_def = "#{SRC_DIR}/runo.def"
-  libuno_def = "#{SRC_DIR}/libruno.def"
+  module_def = "#{EXT_DIR}/runo.def"
+  libuno_def = "#{EXT_DIR}/libruno.def"
   
   ldflags = " /DLL /NODEFAULTLIB:library /DEBUGTYPE:cv "
   module_ldflags = " #{ldflags} /MAP /DEF:#{module_def} "
@@ -347,8 +347,8 @@ Gem::PackageTask.new(spec) do |t|
 end
 
 file GEM_LIB_UNO_RB => [LIB_DIR] do |t|
-  uno = IO.read("#{SRC_DIR}/#{UNO_RB}")
-  connector = IO.read("#{SRC_DIR}/#{CONNECTOR_RB}")
+  uno = IO.read("#{LIB_DIR}/#{UNO_RB}")
+  connector = IO.read("#{LIB_DIR}/#{CONNECTOR_RB}")
   uno.sub!(/#require 'uno\/runo.so'/, "require 'uno/runo.so'")
   open("#{LIB_DIR}/#{UNO_RB}", "w") do |f|
     f.write uno
@@ -558,8 +558,8 @@ file LOADER_PKG => [LOADER_PKG_DIR, "#{LOADER_PKG_DIR}/lib", LOADER_LIB_RUNO_DLL
   cp "#{LOADER_MODULE_DLL}", "#{LOADER_PKG_DIR_LIB}/#{MODULE_DLL}"
   cp "#{LOADER_LIB_DLL}", "#{LOADER_PKG_DIR_LIB}/#{loader_dll}"
   
-  cp "#{SRC_DIR}/#{LOADER_RB}", "#{LOADER_PKG_DIR_LIB}/#{LOADER_RB}"
-  cp "#{SRC_DIR}/#{UNO_RB}", "#{LOADER_PKG_DIR_LIB}/#{LIB_RB}"
+  cp "#{LIB_DIR}/#{LOADER_RB}", "#{LOADER_PKG_DIR_LIB}/#{LOADER_RB}"
+  cp "#{LIB_DIR}/#{UNO_RB}", "#{LOADER_PKG_DIR_LIB}/#{LIB_RB}"
   
   packaging_task dir_path, File.basename(t.name)
 end
@@ -587,7 +587,7 @@ file SCRIPT_PKG => [SCRIPT_PKG_DIR, SCRIPT_PKG_DIR_LIB] do |t|
   description_task(dir_path, SCRIPT_PACKAGE_ID, target, SCRIPT_PKG_DISPLAY_NAME)
   extension_description_task(dir_path, SCRIPT_DESC)
   
-  cp "#{SRC_DIR}/#{SCRIPT_RB}", "#{SCRIPT_PKG_DIR_LIB}/#{SCRIPT_RB}"
+  cp "#{LIB_DIR}/#{SCRIPT_RB}", "#{SCRIPT_PKG_DIR_LIB}/#{SCRIPT_RB}"
   
   packaging_task dir_path, File.basename(t.name)
 end

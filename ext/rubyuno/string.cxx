@@ -1,5 +1,5 @@
 
-#include "runo.hxx"
+#include "rubyuno.hxx"
 
 #ifdef HAVE_RUBY_IO_H
 #include <ruby/io.h>
@@ -12,7 +12,7 @@ using rtl::OString;
 using rtl::OUString;
 using rtl::OUStringToOString;
 
-namespace runo
+namespace rubyuno
 {
 
 OUString

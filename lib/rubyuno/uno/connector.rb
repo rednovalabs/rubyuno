@@ -15,9 +15,11 @@
 #  specific language governing permissions and limitations
 #  under the License.
 
+require 'rubyuno/rubyuno'
+
 module Uno
-  Runo.uno_require 'com.sun.star.connection.NoConnectException'
-  Runo.uno_require 'com.sun.star.connection.ConnectionSetupException'
+  Rubyuno.uno_require 'com.sun.star.connection.NoConnectException'
+  Rubyuno.uno_require 'com.sun.star.connection.ConnectionSetupException'
   
 #
 # Helps to connect to the office by RPC with UNO protocol.
@@ -50,9 +52,9 @@ module Uno
       n = 0
       begin
         c = self.connect(url, r)
-      rescue Runo::Com::Sun::Star::Uno::Exception => e
+      rescue Rubyuno::Com::Sun::Star::Uno::Exception => e
         raise e if e.uno_instance_of?(
-            Runo::Com::Sun::Star::Connection::ConnectionSetupException)
+            Rubyuno::Com::Sun::Star::Connection::ConnectionSetupException)
         n += 1
         (raise NoConnectionError,"") if n > @@retry
         spawn(ENV, office, argument)
@@ -87,21 +89,9 @@ module Uno
     end
     
     def self.resolver_get
-      ctx = Runo.get_component_context
+      ctx = Rubyuno.get_component_context
       return ctx.getServiceManager.createInstanceWithContext(
                       "com.sun.star.bridge.UnoUrlResolver", ctx)
     end
   end
-end
-
-# If loadComponentFromURL method is not found on desktop instance, 
-# environmental variables are not correct.
-if __FILE__ == $0
-  office = "/home/asuka/local/opt/openoffice.org3/program/soffice"
-  ctx = Uno::Connector.bootstrap(office)
-  smgr = ctx.getServiceManager
-  desktop = smgr.createInstanceWithContext(
-                   "com.sun.star.frame.Desktop", ctx)
-  doc = desktop.loadComponentFromURL("private:factory/swriter", "_blank", 0, [])
-  doc.getText.setString("Hello Ruby!")
 end
