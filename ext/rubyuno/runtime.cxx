@@ -123,8 +123,8 @@ void Runtime::initialize(const Reference< XComponentContext > &ctx) throw (Runti
 }
 
 
-static Sequence< Type >
-getTypes(const Runtime &runtime, VALUE *value)
+Sequence< Type >
+Runtime::getTypes(const Runtime &runtime, VALUE *value)
 {
 	Sequence< Type > ret;
 	ID id = rb_intern("getTypes");

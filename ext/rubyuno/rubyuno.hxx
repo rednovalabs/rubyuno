@@ -192,7 +192,7 @@ public:
     
     VALUE any_to_VALUE(const com::sun::star::uno::Any &a) const throw (com::sun::star::uno::RuntimeException);
     com::sun::star::uno::Any value_to_any(VALUE value) const throw (com::sun::star::uno::RuntimeException);
-    com::sun::star::uno::Sequence< com::sun::star::uno::Type > getTypes(const Runtime &runtime, VALUE *value) const;
+    static com::sun::star::uno::Sequence< com::sun::star::uno::Type > getTypes(const Runtime &runtime, VALUE *value);
 };
 
 
