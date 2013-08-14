@@ -68,7 +68,7 @@ module Uno
         (raise NoConnectionError,"") if n > @@retry
 
         if options[:spawn_cmd]
-          %x("#{options[:spawn_cmd]}")
+          system options[:spawn_cmd]
         else
           spawn(ENV, options[:office], argument)
         end
