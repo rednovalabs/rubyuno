@@ -70,7 +70,7 @@ module Uno
         if options[:spawn_cmd]
           %x("#{options[:spawn_cmd]}")
         else
-          spawn(ENV, office, argument)
+          spawn(ENV, options[:office], argument)
         end
 
         sleep(@@sleep_time)
