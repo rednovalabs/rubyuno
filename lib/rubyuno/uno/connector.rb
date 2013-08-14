@@ -44,54 +44,70 @@ module Uno
     
     # Read Professional UNO chapter of Developer's Guide about 
     # UNO Remote protocol.
-    def self.bootstrap(office="soffice", type="socket", 
-         host="localhost", port=2083, pipe_name=nil, nodelay=false)
-      url, argument = self.url_construct(type, host, port, pipe_name, nodelay)
+    def self.bootstrap(options = {})
+      options = {
+        :office => 'soffice',
+        :type => 'socket',
+        :host => '127.0.0.1',
+        :port => 2083,
+        :nodelay => false
+      }.merge(options)
+
+      url, argument = self.url_construct(options[:type], options[:host], options[:port], options[:pipe_name], options[:nodelay])
+
       r = self.resolver_get
       c = nil
       n = 0
+
       begin
         c = self.connect(url, r)
       rescue Rubyuno::Com::Sun::Star::Uno::Exception => e
-        raise e if e.uno_instance_of?(
-            Rubyuno::Com::Sun::Star::Connection::ConnectionSetupException)
+        raise e if e.instance_of?(Rubyuno::Com::Sun::Star::Connection::ConnectionSetupException)
+
         n += 1
         (raise NoConnectionError,"") if n > @@retry
-        spawn(ENV, office, argument)
+
+        if spawn_cmd
+          %x[spawn_cmd]
+        else
+          spawn(ENV, office, argument)
+        end
+
         sleep(@@sleep_time)
+
         retry
       end
+
       return c
     end
     
-    def self.connect(url, resolver=nil)
+    def self.connect(url, resolver = nil)
       resolver = self.resolver_get unless resolver
       return resolver.resolve(url)
     end
-    
-    def self.url_construct(type="socket", 
-         host="localhost", port=2083, pipe_name=nil, nodelay=false)
+
+    def self.url_construct(type = "socket", host = "127.0.0.1", port = 2083, pipe_name = nil, nodelay = false)
       case type
-      when "socket"
-        part = "socket,host=#{host},port=#{port}," +
-                  "tcpNoDelay=#{nodelay ? 1 : 0};urp;"
-        url = "uno:#{part}StarOffice.ComponentContext"
-        argument = "-accept=#{part}StarOffice.ServiceManager"
-      when "pipe"
-        pipe_name = "#{PIPE_NAME_PREFIX}#{srand * 10000}" unless pipe_name
-        part = "pipe,name=#{pipe_name};urp;"
-        url = "uno:#{part}StarOffice.ServiceManager"
-        argument = "-accept=#{part}StarOffice.ComponentContext"
-      else
-        raise ArgumentError, "Illegal connection type (#{type})"
+        when "socket"
+          part = "socket,host=#{host},port=#{port}," +
+                    "tcpNoDelay=#{nodelay ? 1 : 0};urp;"
+          url = "uno:#{part}StarOffice.ComponentContext"
+          argument = "-headless -nologo -nofirststartwizard -accept=#{part}StarOffice.ServiceManager"
+        when "pipe"
+          pipe_name = "#{PIPE_NAME_PREFIX}#{srand * 10000}" unless pipe_name
+          part = "pipe,name=#{pipe_name};urp;"
+          url = "uno:#{part}StarOffice.ServiceManager"
+          argument = "-headless -nologo -nofirststartwizard -accept=#{part}StarOffice.ComponentContext"
+        else
+          raise ArgumentError, "Illegal connection type (#{type})"
       end
+
       return url, argument
     end
-    
+
     def self.resolver_get
       ctx = Rubyuno.get_component_context
-      return ctx.getServiceManager.createInstanceWithContext(
-                      "com.sun.star.bridge.UnoUrlResolver", ctx)
+      return ctx.getServiceManager.createInstanceWithContext("com.sun.star.bridge.UnoUrlResolver", ctx)
     end
   end
 end
