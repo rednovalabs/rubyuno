@@ -252,7 +252,7 @@ rubyuno_uno_require(VALUE self, VALUE name)
 				for (sal_Int32 i = 0; i < constants.getLength(); i++)
 				{
 					value = runtime.any_to_VALUE(constants[i]->getConstantValue());
-					rb_iv_set(klass, OUStringToOString(constants[i]->getName().copy(nStart), RTL_TEXTENCODING_ASCII_US).getStr(), value);
+					rb_iv_set(klass, OUSTRING_TO_ASCII(constants[i]->getName().copy(nStart)), value);
 				}
 				return klass;
 			}

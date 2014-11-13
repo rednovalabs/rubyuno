@@ -1,6 +1,6 @@
 # coding: utf-8
 
-require 'uno.rb'
+require 'rubyuno'
 
 desktop = Runo.get_desktop
 if desktop

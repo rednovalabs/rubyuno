@@ -32,7 +32,7 @@ compilation is successfully finished, runo.so file is created.
 
 = Environment Variables
 
-RUNO needs a few environmet variable settings befor to run work correctly. 
+RUNO needs a few environmet variable settings before to run work correctly. 
 
 * LD_LIBRARY_PATH (for Linux or UNIX) or PATH (for Windows)
  To find libraries of UNO (or OpenOffice.org).
