@@ -65,7 +65,7 @@ rubyuno_absolutize(VALUE self, VALUE base_url, VALUE rel_path)
 	OUString baseUrl = rbString2OUString(base_url);
 	OUString relativePath = rbString2OUString(rel_path);
 	OUString absUrl;
-	
+
 	osl::FileBase::RC e = osl::FileBase::getAbsoluteFileURL(baseUrl, relativePath, absUrl);
 	if (e != osl::FileBase::E_None)
 	{
@@ -142,7 +142,7 @@ rubyuno_getComponentContext(VALUE self)
 {
 	rb_secure(2);
 	Reference< XComponentContext > ctx;
-	
+
 	if (Runtime::isInitialized())
 	{
 		Runtime r;
@@ -192,7 +192,7 @@ rubyuno_uno_require(VALUE self, VALUE name)
 			Reference< XTypeDescription > xTd(a, UNO_QUERY);
 			if (!xTd.is())
 				rb_raise(rb_eArgError, "unknown type (%s)", RSTRING_PTR(name));
-			
+
 			// typeName is checked by the TypeDescriptionManager
 			VALUE module, klass;
 			ID id;
@@ -200,16 +200,16 @@ rubyuno_uno_require(VALUE self, VALUE name)
 			OUString tmpName, moduleName;
 			char *className;
 			OUStringBuffer buf;
-			
+
 			ends = typeName.lastIndexOfAsciiL(".", 1);
 			tmpName = typeName.copy(ends + 1);
-			
+
 			module = create_module(typeName);
-			
+
 			buf.append(tmpName.copy(0, 1).toAsciiUpperCase()).append(tmpName.copy(1));
 			className = (char*) OUStringToOString(buf.makeStringAndClear(), RTL_TEXTENCODING_ASCII_US ).getStr();
 			id = rb_intern(className);
-			
+
 			if (xTd->getTypeClass() == TypeClass_STRUCT || xTd->getTypeClass() == TypeClass_EXCEPTION)
 			{
 				Any aStruct;
@@ -230,7 +230,7 @@ rubyuno_uno_require(VALUE self, VALUE name)
 							klass = rb_define_class_under(module, className, get_struct_class());
 						else
 							klass = rb_define_class_under(module, className, get_exception_class());
-						
+
 						VALUE type_name = rb_str_new2(RSTRING_PTR(name));
 						rb_define_const(klass, "TYPENAME", type_name);
 					}
@@ -244,7 +244,7 @@ rubyuno_uno_require(VALUE self, VALUE name)
 					klass = rb_const_get(module, id);
 				else
 					klass = rb_define_module_under(module, className);
-				
+
 				VALUE value;
 				Reference< XConstantsTypeDescription > xDesc(a, UNO_QUERY);
 				Sequence< Reference< XConstantTypeDescription > > constants(xDesc->getConstants());
@@ -252,8 +252,7 @@ rubyuno_uno_require(VALUE self, VALUE name)
 				for (sal_Int32 i = 0; i < constants.getLength(); i++)
 				{
 					value = runtime.any_to_VALUE(constants[i]->getConstantValue());
-					rb_iv_set(klass, OUStringToOString(
-						constants[i]->getName().copy(nStart), RTL_TEXTENCODING_ASCII_US ), value);
+					rb_iv_set(klass, OUStringToOString(constants[i]->getName().copy(nStart), RTL_TEXTENCODING_ASCII_US).getStr(), value);
 				}
 				return klass;
 			}
@@ -270,12 +269,12 @@ rubyuno_uno_require(VALUE self, VALUE name)
 				}
 				Reference< XEnumTypeDescription > xEnumDesc(a, UNO_QUERY);
 				Sequence< OUString > names(xEnumDesc->getEnumNames());
-				
+
 				VALUE enum_class = get_enum_class();
 				VALUE obj;
 				VALUE type_name = ustring2RString(typeName);
 				OUString valueName;
-				
+
 				TypeDescription desc(typeName);
 				if (!desc.is())
 				{
@@ -297,11 +296,11 @@ rubyuno_uno_require(VALUE self, VALUE name)
 					obj = rb_obj_alloc(enum_class);
 					DATA_PTR(obj) = ptr;
 					ptr->value = a;
-					
+
 					valueName = (*((OUString*)&pEnumDesc->ppEnumNames[i]));
 					rb_iv_set(obj, "@type_name", type_name);
 					rb_iv_set(obj, "@value", ustring2RString(valueName));
-					
+
 					rb_iv_set(klass, OUStringToOString(
 						valueName, RTL_TEXTENCODING_ASCII_US ).getStr(), obj);
 				}
@@ -326,7 +325,7 @@ rubyuno_uno_require(VALUE self, VALUE name)
 		ends = typeName.lastIndexOfAsciiL(".", 1);
 		tmpTypeName = typeName.copy(0, ends);
 		valueName = typeName.copy(ends + 1);
-		
+
 		Any desc = runtime.getImpl()->xTypeDescription->getByHierarchicalName(tmpTypeName);
 		if (desc.getValueTypeClass() == TypeClass_INTERFACE)
 		{
@@ -356,7 +355,7 @@ rubyuno_uno_require(VALUE self, VALUE name)
 
 /*
  * Import somethings with a call.
- * if argc == 1, value is returned and if multiple arguments are passed, 
+ * if argc == 1, value is returned and if multiple arguments are passed,
  * returnes as Array.
  */
 static VALUE
@@ -366,10 +365,10 @@ rubyuno_uno_multiple_require(int argc, VALUE *argv, VALUE self)
 		return Qnil;
 	VALUE args;
 	rb_scan_args(argc, argv, "*", &args);
-	
+
 	if (argc == 1)
 		return rubyuno_uno_require(self, rb_ary_entry(args, 0));
-	
+
 	VALUE ret = rb_ary_new2(argc);
 	for (int i = 0; i < argc; i++)
 	{
@@ -465,7 +464,7 @@ proxy_call_method(VALUE *self, RubyunoInternal *rubyuno, VALUE *name, OUString m
 			aParams[0] <<= anyParams;
 		}
 		retValue = rubyuno->invocation->invoke(methodName, aParams, aOutParamIndex, aOutParams);
-		
+
 		VALUE tmp = runtime.any_to_VALUE(retValue);
 		if (aOutParams.getLength())
 		{
@@ -515,10 +514,10 @@ proxy_method_call(VALUE name_symbol, VALUE *args, VALUE self)
 	name = rb_str_new2(rb_id2name(rb_to_id(name_symbol)));
 #endif
 	methodName = asciiVALUE2OUString(name);
-	
+
 	RubyunoInternal *rubyuno;
 	Data_Get_Struct(self, RubyunoInternal, rubyuno);
-	
+
 	if (methodName.endsWithAsciiL("=", 1))
 	{
 		OUString propertyName(methodName.copy(0, methodName.getLength() - 1));
@@ -547,11 +546,11 @@ rubyuno_proxy_method_missing(int argc, VALUE *argv, VALUE self)
 	if (argc >= 1)
 	{
 		rb_secure(2);
-		
+
 		VALUE name_symbol, args;
 		// get method symbol
 		rb_scan_args(argc, argv, "1*", &name_symbol, &args);
-		
+
 		return proxy_method_call(name_symbol, &args, self);
 	}
 	rb_raise(rb_eRuntimeError, "unknown error");
@@ -573,14 +572,14 @@ rubyuno_uno_methods(VALUE self)
 	Data_Get_Struct(self, RubyunoInternal, rubyuno);
 	if (!rubyuno)
 		rb_raise(rb_eRuntimeError, "illegal instance (%s)", rb_obj_classname(self));
-	
+
 	VALUE names, assignment;
 	assignment = rb_str_new("=", 1);
 	Reference< XInvocation2 > xInv = rubyuno->invocation;
 	Sequence< InvocationInfo > infos = xInv->getInfo();
-	
+
 	names = rb_ary_new2((int)infos.getLength());
-	
+
 	for (int i = 0; i < (int)infos.getLength(); i++)
 	{
 		if (infos[i].eMemberType == MemberType_METHOD)
@@ -619,11 +618,11 @@ rubyuno_proxy_equal(VALUE self, VALUE object)
 {
 	if (CLASS_OF(object) != get_proxy_class())
 		return Qfalse;
-	
+
 	RubyunoInternal *self_rubyuno, *object_rubyuno;
 	Data_Get_Struct(self, RubyunoInternal, self_rubyuno);
 	Data_Get_Struct(object, RubyunoInternal, object_rubyuno);
-	
+
 	if (self_rubyuno && object_rubyuno)
 	{
 		if (self_rubyuno->wrapped == object_rubyuno->wrapped)
@@ -667,23 +666,23 @@ static VALUE
 rubyuno_proxy_has_interface(VALUE self, VALUE name)
 {
 	StringValue(name);
-	
+
 	RubyunoInternal *rubyuno;
 	Data_Get_Struct(self, RubyunoInternal, rubyuno);
 	if (rubyuno)
 	{
 		Runtime runtime;
 		OUString typeName;
-		
+
 		typeName = rbString2OUString(name);
 		Reference < XInterface > xInterface = *(Reference < XInterface >*) rubyuno->wrapped.getValue();
 		Reference< XIdlClass > xIdlClass = runtime.getImpl()->xCoreReflection->forName(typeName);
-		
+
 		if (xIdlClass.is())
 		{
 			OUString className = xIdlClass->getName();
 			Type classType(xIdlClass->getTypeClass(), className.getStr());
-			
+
 			if (xInterface->queryInterface(classType).hasValue())
 				return Qtrue;
 		}
@@ -698,11 +697,11 @@ rubyuno_proxy_has_interface(VALUE self, VALUE name)
 static VALUE
 rubyuno_invoke(VALUE self, VALUE object, VALUE name, VALUE args)
 {
-	if (! (rb_obj_is_kind_of(object, get_proxy_class()) || 
-			rb_obj_is_kind_of(object, get_struct_class()) || 
+	if (! (rb_obj_is_kind_of(object, get_proxy_class()) ||
+			rb_obj_is_kind_of(object, get_struct_class()) ||
 			rb_obj_is_kind_of(object, get_exception_class())) )
 		rb_raise(rb_eArgError, "invalid object for source to invoke the function");
-	
+
 	Check_Type(name, T_STRING);
 	Check_Type(args, T_ARRAY);
 #ifdef HAVE_RUBY_RUBY_H
@@ -730,9 +729,9 @@ sal_Int32 fill_struct(const typelib_CompoundTypeDescription *pCompType, VALUE *a
 	sal_Int32 nIndex = 0;
 	if (pCompType->pBaseTypeDescription)
 		nIndex = fill_struct(pCompType->pBaseTypeDescription, args, xInvocation, runtime);
-	
+
 	sal_Int32 nLength = RARRAY_LEN(*args);
-	
+
 	int i;
 	for (i = 0; i < pCompType->nMembers; i++)
 	{
@@ -744,7 +743,7 @@ sal_Int32 fill_struct(const typelib_CompoundTypeDescription *pCompType, VALUE *a
 		Any a = runtime.value_to_any(item);
 		xInvocation->setValue(pCompType->ppMemberNames[i], a);
 	}
-	
+
 	return i + nIndex;
 }
 
@@ -760,7 +759,7 @@ rubyuno_struct_initialize(int argc, VALUE *argv, VALUE self)
 	if (!rb_const_defined(klass, id))
 		rb_raise(rb_eRuntimeError, "wrongly initialized class `%s', type_name is not specified", rb_obj_classname(klass));
 	type_name = rb_const_get(klass, id);
-	
+
 	Runtime runtime;
 	Any aStruct;
 	OUString typeName = rbString2OUString(type_name);
@@ -768,20 +767,20 @@ rubyuno_struct_initialize(int argc, VALUE *argv, VALUE self)
 	if (!idlClass.is())
 		rb_raise(rb_eRuntimeError, "unknown type name (%s)", RSTRING_PTR(type_name));
 	idlClass->createObject(aStruct);
-	
+
 	set_rubyuno_struct(aStruct, runtime.getImpl()->xInvocation, self);
-	
+
 	// set initial values
 	if (argc > 1)
 	{
 		VALUE args;
 		rb_scan_args(argc, argv, "*", &args);
-		
+
 		TypeDescription desc(typeName);
 		if (desc.is())
 		{
 			typelib_CompoundTypeDescription *pCompType = (typelib_CompoundTypeDescription *) desc.get();
-			
+
 			RubyunoInternal *rubyuno;
 			Data_Get_Struct(self, RubyunoInternal, rubyuno);
 			fill_struct(pCompType, &args, rubyuno->invocation, runtime);
@@ -793,17 +792,17 @@ rubyuno_struct_initialize(int argc, VALUE *argv, VALUE self)
 static VALUE
 rubyuno_struct_equal(VALUE self, VALUE object)
 {
-	if (! (rb_obj_is_kind_of(object, get_struct_class()) || 
+	if (! (rb_obj_is_kind_of(object, get_struct_class()) ||
 			rb_obj_is_kind_of(object, get_enum_class()) ) )
 		return Qfalse;
-	
+
 	RubyunoInternal *rubyuno_self, *rubyuno_object;
 	Data_Get_Struct(self, RubyunoInternal, rubyuno_self);
 	Data_Get_Struct(object, RubyunoInternal, rubyuno_object);
-	
+
 	Reference< XMaterialHolder > selfMaterial(rubyuno_self->invocation, UNO_QUERY);
 	Reference< XMaterialHolder > objectMaterial(rubyuno_object->invocation, UNO_QUERY);
-	
+
 	if (selfMaterial->getMaterial() == objectMaterial->getMaterial())
 		return Qtrue;
 	return Qfalse;
@@ -824,18 +823,18 @@ rubyuno_exception_initialize(VALUE self, VALUE message)
 	klass = CLASS_OF(self);
 	if (!rb_const_defined(klass, id))
 		rb_raise(rb_eRuntimeError, "wrongly initialized class `%s', type_name is not specified", rb_obj_classname(klass));
-	
+
 	type_name = rb_const_get(klass, id);
 	Runtime runtime;
 	Any aStruct;
 	OUString typeName = rbString2OUString(type_name);
 	Reference< XIdlClass > idlClass(runtime.getImpl()->xCoreReflection->forName(typeName), UNO_QUERY);
-	
+
 	if (!idlClass.is())
 		rb_raise(rb_eRuntimeError, "unknown type name (%s)", RSTRING_PTR(type_name));
 	idlClass->createObject(aStruct);
 	set_rubyuno_struct(aStruct, runtime.getImpl()->xInvocation, self);
-	
+
 	rb_iv_set(self, "mesg", message);
 	rb_iv_set(self, "bt", Qnil);
 */
@@ -852,18 +851,18 @@ rubyuno_enum_initialize(VALUE self, VALUE type_name, VALUE value)
 	// check args
 	Check_Type(type_name, T_STRING);
 	Check_Type(value, T_STRING);
-	
+
 	OUString typeName = rbString2OUString(type_name);
 	char *strValue = RSTRING_PTR(value);
-	
+
 	TypeDescription desc(typeName);
 	if (desc.is())
 	{
 		if (desc.get()->eTypeClass != typelib_TypeClass_ENUM)
 			rb_raise(rb_eArgError, "wrong type name (%s)", RSTRING_PTR(type_name));
-		
+
 		desc.makeComplete();
-		
+
 		typelib_EnumTypeDescription *pEnumDesc = (typelib_EnumTypeDescription*) desc.get();
 		int i = 0;
 		for (i = 0; i < pEnumDesc->nEnumValues; i++)
@@ -875,7 +874,7 @@ rubyuno_enum_initialize(VALUE self, VALUE type_name, VALUE value)
 		}
 		if (i == pEnumDesc->nEnumValues)
 			rb_raise(rb_eArgError, "wrong value (%s)", strValue);
-		
+
 		Any a = Any(&pEnumDesc->pEnumValues[i], desc.get()->pWeakRef);
 		RubyunoValue *ptr;
 		Data_Get_Struct(self, RubyunoValue, ptr);
@@ -885,7 +884,7 @@ rubyuno_enum_initialize(VALUE self, VALUE type_name, VALUE value)
 	{
 		rb_raise(rb_eArgError, "unknown type name (%s)", RSTRING_PTR(type_name));
 	}
-	
+
 	rb_iv_set(self, "@type_name", type_name);
 	rb_iv_set(self, "@value", value);
 	return self;
@@ -898,10 +897,10 @@ rubyuno_enum_equal(VALUE self, VALUE object)
 		return Qfalse;
 	ID id = rb_intern("==");
 	VALUE self_type_name, self_value;
-	
+
 	self_type_name = rb_iv_get(self, "@type_name");
 	self_value = rb_iv_get(self, "@value");
-	if (rb_funcall(self_type_name, id, 1, rb_iv_get(object, "@type_name")) && 
+	if (rb_funcall(self_type_name, id, 1, rb_iv_get(object, "@type_name")) &&
 		rb_funcall(self_value, id, 1, rb_iv_get(object, "@value")))
 		return Qtrue;
 	return Qfalse;
@@ -915,7 +914,7 @@ rubyuno_enum_inspect(VALUE self)
 	value = rb_iv_get(self, "@value");
 	Check_Type(type_name, T_STRING);
 	Check_Type(value, T_STRING);
-	
+
 	desc = rb_tainted_str_new("#<Rubyuno::Enum:", 13);
 	rb_str_cat(desc, RSTRING_PTR(type_name), RSTRING_LEN(type_name));
 	rb_str_cat(desc, ".", 1);
@@ -933,21 +932,21 @@ rubyuno_type_initialize(int argc, VALUE *argv, VALUE self)
 {
 	VALUE type_name, type_class;
 	TypeDescription desc;
-	
+
 	if (argc == 1)
 	{
 		VALUE value;
 		rb_scan_args(argc, argv, "1", &value);
-		
+
 		if (TYPE(value) == T_STRING)
 		{
 			type_name = value;
-			
+
 			OUString typeName = rbString2OUString(type_name);
 			desc = TypeDescription(typeName);
 			if (!desc.is())
 				rb_raise(rb_eArgError, "wrong type name (%s)", RSTRING_PTR(type_name));
-			
+
 			Runtime runtime;
 			type_class = runtime.any_to_VALUE(Any((com::sun::star::uno::TypeClass)desc.get()->eTypeClass));
 		}
@@ -955,10 +954,10 @@ rubyuno_type_initialize(int argc, VALUE *argv, VALUE self)
 		{
 			type_class = value;
 			VALUE enum_type_name = rb_iv_get(type_class, "@type_name");
-			
+
 			if (strcmp(RSTRING_PTR(enum_type_name), "com.sun.star.uno.TypeClass"))
 				rb_raise(rb_eArgError, "invalid enum (%s)", RSTRING_PTR(value));
-			
+
 			type_name = rb_iv_get(type_class, "@value");
 			OUString typeName = rbString2OUString(type_name);
 			desc = TypeDescription(typeName.toAsciiLowerCase());
@@ -971,11 +970,11 @@ rubyuno_type_initialize(int argc, VALUE *argv, VALUE self)
 	else if (argc == 2)
 	{
 		rb_scan_args(argc, argv, "11", &type_name, &type_class);
-		
+
 		Check_Type(type_name, T_STRING);
 		if (! CLASS_OF(type_class) == get_enum_class())
 			rb_raise(rb_eArgError, "Rubyuno::Enum is desired for 2nd argument.");
-		
+
 		RubyunoValue *value;
 		Data_Get_Struct(type_class, RubyunoValue, value);
 		Any enumValue = value->value;
@@ -988,15 +987,15 @@ rubyuno_type_initialize(int argc, VALUE *argv, VALUE self)
 	}
 	else
 		rb_raise(rb_eArgError, "too much arguments (%d for maximum 2)", argc);
-	
-	
+
+
 	Type t = desc.get()->pWeakRef;
 	Any a;
 	a <<= t;
 	RubyunoValue *rubyuno;
 	Data_Get_Struct(self, RubyunoValue, rubyuno);
 	rubyuno->value = a;
-	
+
 	rb_iv_set(self, "@type_name", type_name);
 	rb_iv_set(self, "@type_class", type_class);
 	return self;
@@ -1007,15 +1006,15 @@ rubyuno_type_equal(VALUE self, VALUE object)
 {
 	if (! object == CLASS_OF(get_type_class()))
 		return Qfalse;
-	
+
 	ID id = rb_intern("==");
 	VALUE type_name, type_class;
 	type_name = rb_iv_get(self, "@type_name");
 	type_class = rb_iv_get(self, "@type_class");
-	if (rb_funcall(self, id, 1, rb_iv_get(object, "@type_name")) && 
+	if (rb_funcall(self, id, 1, rb_iv_get(object, "@type_name")) &&
 		rb_funcall(self, id, 1, rb_iv_get(object, "@type_class")))
 		return Qtrue;
-	
+
 	return Qfalse;
 }
 
@@ -1031,7 +1030,7 @@ rubyuno_type_inspect(VALUE self)
 		rb_raise(rb_eRuntimeError, "unknown value for type_class (%s for Rubyuno::RubyunoEnum)", rb_obj_classname(type_class));
 	}
 	value = rb_iv_get(type_class, "@value");
-	
+
 	desc = rb_tainted_str_new("#<Rubyuno::Type:", 13);
 	rb_str_cat(desc, RSTRING_PTR(type_name), RSTRING_LEN(type_name));
 	rb_str_cat(desc, "(", 1);
@@ -1057,7 +1056,7 @@ rubyuno_char_initialize(VALUE self, VALUE char_value)
 	RubyunoValue *rubyuno;
 	Data_Get_Struct(self, RubyunoValue, rubyuno);
 	rubyuno->value = a;
-	
+
 	rb_iv_set(self, "@value", char_value);
 	return self;
 }
@@ -1065,14 +1064,14 @@ rubyuno_char_initialize(VALUE self, VALUE char_value)
 static VALUE
 rubyuno_char_equal(VALUE self, VALUE object)
 {
-	if (!(CLASS_OF(object) == get_char_class() || 
+	if (!(CLASS_OF(object) == get_char_class() ||
 		TYPE(object) == T_STRING))
 		return Qfalse;
-	
+
 	ID id = rb_intern("==");
 	if (rb_funcall(object, id, 1, rb_iv_get(self, "@value")))
 		return Qtrue;
-	
+
 	return Qfalse;
 }
 
@@ -1082,7 +1081,7 @@ rubyuno_char_inspect(VALUE self)
 	VALUE desc, value;
 	value = rb_iv_get(self, "@value");
 	Check_Type(value, T_STRING);
-	
+
 	desc = rb_tainted_str_new("#<Rubyuno::Char:", 13);
 	rb_str_cat(desc, RSTRING_PTR(value), RSTRING_LEN(value));
 	rb_str_cat(desc, ">", 1);
@@ -1118,7 +1117,7 @@ rubyuno_any_initialize(VALUE self, VALUE type, VALUE value)
 		rb_raise(rb_eArgError, "invalid type for type.");
 	}
 	rb_iv_set(self, "@value", value);
-	
+
 	return self;
 }
 
@@ -1127,16 +1126,16 @@ rubyuno_any_equal(VALUE self, VALUE object)
 {
 	if (! CLASS_OF(self) == get_any_class())
 		return Qfalse;
-	
+
 	ID id = rb_intern("==");
 	VALUE type, value;
 	type = rb_iv_get(self, "@type");
 	value = rb_iv_get(self, "@value");
-	
-	if (rb_funcall(type, id, 1, rb_iv_get(object, "@type")) && 
+
+	if (rb_funcall(type, id, 1, rb_iv_get(object, "@type")) &&
 		rb_funcall(value, id, 1, rb_iv_get(object, "@value")))
 		return Qtrue;
-	
+
 	return Qfalse;
 }
 
@@ -1175,7 +1174,7 @@ Init_rubyuno(void)
 	rb_define_module_function(Rubyuno, "uuid", (VALUE(*)(...))rubyuno_create_uuid, 0);
 	rb_define_module_function(Rubyuno, "uno_require", (VALUE(*)(...))rubyuno_uno_multiple_require, -1);
 	rb_define_module_function(Rubyuno, "invoke", (VALUE(*)(...))rubyuno_invoke, 3);
-	
+
 	VALUE RubyunoProxy;
 	RubyunoProxy = rb_define_class_under(Rubyuno, "RubyunoProxy", rb_cData);
 	rb_define_alloc_func(RubyunoProxy, rubyuno_proxy_alloc);
@@ -1184,7 +1183,7 @@ Init_rubyuno(void)
 	rb_define_method(RubyunoProxy, "==", (VALUE(*)(...))rubyuno_proxy_equal, 1);
 	rb_define_method(RubyunoProxy, "uno_methods", (VALUE(*)(...))rubyuno_uno_methods, 0);
 	rb_define_method(RubyunoProxy, "has_interface?", (VALUE(*)(...))rubyuno_proxy_has_interface, 1);
-	
+
 	VALUE RubyunoEnum;
 	RubyunoEnum = rb_define_class_under(Rubyuno, "Enum", rb_cObject);
 	rb_define_alloc_func(RubyunoEnum, rubyuno_value_alloc);
@@ -1193,7 +1192,7 @@ Init_rubyuno(void)
 	rb_define_attr(RubyunoEnum, "type_name", 1, 0);
 	rb_define_attr(RubyunoEnum, "value", 1, 0);
 	rb_define_method(RubyunoEnum, "inspect", (VALUE(*)(...))rubyuno_enum_inspect, 0);
-		
+
 	VALUE RubyunoType;
 	RubyunoType = rb_define_class_under(Rubyuno, "Type", rb_cObject);
 	rb_define_alloc_func(RubyunoType, rubyuno_value_alloc);
@@ -1202,7 +1201,7 @@ Init_rubyuno(void)
 	rb_define_attr(RubyunoType, "type_name", 1, 0);
 	rb_define_attr(RubyunoType, "type_class", 1, 0);
 	rb_define_method(RubyunoType, "inspect", (VALUE(*)(...))rubyuno_type_inspect, 0);
-	
+
 	VALUE RubyunoChar;
 	RubyunoChar = rb_define_class_under(Rubyuno, "Char", rb_cObject);
 	rb_define_alloc_func(RubyunoChar, rubyuno_value_alloc);
@@ -1218,10 +1217,10 @@ Init_rubyuno(void)
 	rb_define_method(RubyunoAny, "==", (VALUE(*)(...))rubyuno_any_equal, 1);
 	rb_define_attr(RubyunoAny, "type", 1, 1);
 	rb_define_attr(RubyunoAny, "value", 1, 1);
-	
+
 	VALUE RubyunoByteSequence;
 	RubyunoByteSequence = rb_define_class_under(Rubyuno, "ByteSequence", rb_cString);
-	
+
 	VALUE RubyunoStruct;
 	RubyunoStruct = rb_define_class_under(Rubyuno, "RubyunoStruct", rb_cObject);
 	rb_define_alloc_func(RubyunoStruct, rubyuno_struct_alloc);
@@ -1229,14 +1228,14 @@ Init_rubyuno(void)
 	rb_define_method(RubyunoStruct, "method_missing", (VALUE(*)(...))rubyuno_proxy_method_missing, -1);
 	rb_define_method(RubyunoStruct, "==", (VALUE(*)(...))rubyuno_struct_equal, 1);
 	rb_define_method(RubyunoStruct, "uno_methods", (VALUE(*)(...))rubyuno_uno_methods, 0);
-	
+
 	VALUE Com, Sun, Star, Uno;
 	Com = rb_define_module_under(Rubyuno, "Com");
 	Sun = rb_define_module_under(Com, "Sun");
 	Star = rb_define_module_under(Sun, "Star");
-	
+
 	Uno = rb_define_module_under(Star, "Uno");
-	
+
 	VALUE RubyunoException;
 	RubyunoException = rb_define_class_under(Uno, "Exception", rb_eStandardError);
 	//rb_define_alloc_func(RubyunoException, rubyuno_struct_alloc);
@@ -1245,18 +1244,18 @@ Init_rubyuno(void)
 	rb_define_method(RubyunoException, "==", (VALUE(*)(...))rubyuno_struct_equal, 1);
 	//rb_define_method(RubyunoException, "uno_methods", (VALUE(*)(...))rubyuno_uno_methods, 0);
 	//rb_define_attr(RubyunoException, "uno", 1, 1);
-	
+
 /*
 	VALUE RubyunoException2;
 	RubyunoException2 = rb_define_class_under(Rubyuno, "Exception", rb_eStandardError);
 	rb_define_alloc_func(RubyunoException2, rubyuno_struct_alloc);
 	rb_define_method(RubyunoException2, "initialize", (VALUE(*)(...))rubyuno_exception2_initialize, 1);
 */
-	
+
 	VALUE XInterface;
 	XInterface = rb_define_module_under(Uno, "XInterface");
 	rb_define_const(XInterface, "TYPENAME", rb_str_new("com.sun.star.uno.XInterface", 27));
-	
+
 	init_external_encoding();
 }
 }

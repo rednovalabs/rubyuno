@@ -43,7 +43,7 @@ get_class(const char *name)
 	VALUE module;
 	ID id;
 	id = rb_intern(name);
-	
+
 	module = get_module_class();
 	if (rb_const_defined(module, id))
 		return rb_const_get(module, id);
@@ -177,13 +177,13 @@ new_rubyuno_proxy(const Any &object, const Reference< XSingleServiceFactory > &x
 	Sequence< Any > arguments(1);
 	arguments[0] <<= object;
 	Reference< XInvocation2 > xinvocation(xFactory->createInstanceWithArguments(arguments), UNO_QUERY);
-	
+
 	VALUE obj;
 	RubyunoInternal *rubyuno;
 	rubyuno = new RubyunoInternal();
 	obj = rb_obj_alloc(klass);
 	DATA_PTR(obj) = rubyuno;
-	
+
 	rubyuno->wrapped = object;
 	rubyuno->invocation = xinvocation;
 	return obj;
@@ -194,12 +194,12 @@ set_rubyuno_struct(const Any &object, const Reference< XSingleServiceFactory > &
 {
 	Sequence< Any > arguments(1);
 	arguments[0] <<= object;
-	
+
 	Reference< XInvocation2 > xinvocation(xFactory->createInstanceWithArguments(arguments), UNO_QUERY);
-	
+
 	RubyunoInternal *rubyuno;
 	Data_Get_Struct(self, RubyunoInternal, rubyuno);
-	
+
 	rubyuno->wrapped = object;
 	rubyuno->invocation = xinvocation;
 }
@@ -213,35 +213,35 @@ create_module(const OUString &name)
 {
 	VALUE parent;
 	parent = get_module_class();
-	
+
 	ID id;
 	sal_Int32 ends, pos, tmp;
 	char *s;
 	OUStringBuffer buf;
 	ends = name.lastIndexOfAsciiL(".", 1);
 	if (!(ends > 1))
-		rb_raise(rb_eArgError, "invalid name(%s)", 
+		rb_raise(rb_eArgError, "invalid name(%s)",
 		OUStringToOString(name, osl_getThreadTextEncoding()).getStr());
 	tmp = 0;
 	pos = name.indexOfAsciiL(".", 1, 0);
 	OUString tmpName = name.copy(ends + 1);
 	if (tmpName.getLength() < 1)
-		rb_raise(rb_eRuntimeError, "invalid name (%s)", 
+		rb_raise(rb_eRuntimeError, "invalid name (%s)",
 		OUStringToOString(tmpName, osl_getThreadTextEncoding()).getStr());
-	
+
 	while (pos < ends)
 	{
 		pos = name.indexOfAsciiL(".", 1, tmp);
-		
+
 		buf.append(name.copy(tmp, 1).toAsciiUpperCase()).append(name.copy(tmp +1, pos - tmp -1));
 		s = (char*)(OUStringToOString(buf.makeStringAndClear(), RTL_TEXTENCODING_ASCII_US).getStr());
-		
+
 		id = rb_intern(s);
 		if (rb_const_defined(parent, id))
 			parent = rb_const_get(parent, id);
 		else
 			parent = rb_define_module_under(parent, s);
-		
+
 		tmp = pos + 1;
 	}
 	return parent;
@@ -258,7 +258,7 @@ find_class(const OUString &name, typelib_TypeClass typeClass)
 	VALUE module;
 	sal_Int32 ends;
 	char *className;
-	
+
 	module = create_module(name);
 	ends = name.lastIndexOfAsciiL(".", 1);
 	className = (char*) OUStringToOString(
@@ -269,7 +269,7 @@ find_class(const OUString &name, typelib_TypeClass typeClass)
 		return rb_const_get(module, id);
 	}
 	VALUE klass;
-	
+
 	if (typeClass == typelib_TypeClass_STRUCT)
 	{
 		klass = rb_define_class_under(module, className, get_struct_class());
@@ -298,13 +298,13 @@ VALUE
 find_interface(Reference< XTypeDescription > &xTd)
 {
 	OUString name = xTd->getName();
-	
+
 	VALUE module = find_class(name, (typelib_TypeClass)xTd->getTypeClass());
-	
+
 	Reference< XInterfaceTypeDescription2 > xInterfaceTd(xTd, UNO_QUERY);
 	Sequence< Reference< XTypeDescription > > xBaseTypes = xInterfaceTd->getBaseTypes();
 	Sequence< Reference< XTypeDescription>  > xOptionalTypes = xInterfaceTd->getOptionalBaseTypes();
-	
+
 	VALUE parent;
 	for (int i = 0; i < xBaseTypes.getLength(); i++)
 	{
@@ -328,16 +328,16 @@ raise_rb_exception(const Any &a)
 	{
 		com::sun::star::uno::Exception e;
 		a >>= e;
-		
+
 		VALUE module, klass;
 		Runtime runtime;
-		
+
 		OUString typeName = a.getValueTypeName();
 		module = create_module(typeName);
-		
+
 		klass = find_class(typeName, (typelib_TypeClass)a.getValueTypeClass());
 		
-		rb_raise(klass, OUStringToOString(e.Message, RTL_TEXTENCODING_ASCII_US).getStr());
+		rb_raise(klass, OUStringToOString(e.Message, RTL_TEXTENCODING_ASCII_US).getStr(), "%s");
 	}
 	catch (com::sun::star::lang::IllegalArgumentException &e)
 	{

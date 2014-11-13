@@ -4,16 +4,16 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  *************************************************************/
 
 #include "rubyuno.hxx"
@@ -25,6 +25,7 @@
 
 #include <cppuhelper/implementationentry.hxx>
 #include <rtl/ustrbuf.hxx>
+#include <uno/lbnames.h>
 
 #include <com/sun/star/uno/XInterface.hpp>
 
@@ -43,7 +44,7 @@ using rtl::OUStringBuffer;
 namespace rubyunoloader
 {
 
-static void 
+static void
 getLibraryPath(OUString &path) throw (com::sun::star::uno::RuntimeException)
 {
     OUString libUrl;
@@ -55,14 +56,14 @@ getLibraryPath(OUString &path) throw (com::sun::star::uno::RuntimeException)
     {
         throw com::sun::star::uno::RuntimeException(
             OUString(RTL_CONSTASCII_USTRINGPARAM(
-                "failed to retrieve path to the loader.")), 
+                "failed to retrieve path to the loader.")),
             Reference< XInterface >());
     }
 }
 
 static int ruby_state = 1;
 
-static void 
+static void
 load_modules(VALUE args)
 {
     rb_require(RSTRING_PTR(rb_ary_entry(args, 0)));
@@ -71,7 +72,7 @@ load_modules(VALUE args)
 }
 
 
-Reference< XInterface > 
+Reference< XInterface >
 createInstanceWithContext(const Reference< XComponentContext > &ctx)
 {
     Reference< XInterface > ret;
@@ -80,11 +81,11 @@ createInstanceWithContext(const Reference< XComponentContext > &ctx)
         OUStringBuffer buf;
         OUString sysPath;
         getLibraryPath(sysPath);
-        
+
         RUBY_INIT_STACK;
         ruby_init();
         ruby_init_loadpath();
-        
+
         if (! rubyuno::Runtime::isInitialized())
         {
             try
@@ -146,16 +147,16 @@ getSupportedServiceNames()
 
 } // rubyunoloader
 
-static struct cppu::ImplementationEntry g_entries[] = 
+static struct cppu::ImplementationEntry g_entries[] =
 {
     {
-        rubyunoloader::createInstanceWithContext, 
-        rubyunoloader::getImplementationName, 
-        rubyunoloader::getSupportedServiceNames, 
-        cppu::createSingleComponentFactory, 
-        0, 
+        rubyunoloader::createInstanceWithContext,
+        rubyunoloader::getImplementationName,
+        rubyunoloader::getSupportedServiceNames,
+        cppu::createSingleComponentFactory,
+        0,
         0
-    }, 
+    },
     {0, 0, 0, 0, 0, 0}
 };
 

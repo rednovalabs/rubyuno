@@ -4,16 +4,16 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  *************************************************************/
 
 #ifndef _RUBYUNO_HXX_
@@ -21,7 +21,7 @@
 
 #include "ruby.h"
 #include <ruby/st.h>
-#include <stl/hash_map>
+#include <unordered_map>
 
 #include <rtl/ustring.hxx>
 
@@ -67,6 +67,9 @@
 
 #define OUSTRING_CONST(str)\
     OUString(RTL_CONSTASCII_USTRINGPARAM(str))
+
+
+
 
 namespace rubyuno
 {
@@ -151,12 +154,7 @@ struct VALUE_hash {
   }
 };
 
-typedef ::std::hash_map<
-  VALUE, 
-  com::sun::star::uno::WeakReference< com::sun::star::script::XInvocation >, 
-  VALUE_hash, 
-  std::equal_to< VALUE >
-> AdapterMap;
+typedef ::std::unordered_map<VALUE, com::sun::star::uno::WeakReference<com::sun::star::script::XInvocation>, VALUE_hash, std::equal_to<VALUE>> AdapterMap;
 
 /*
  * Keeps runtime environment.
@@ -181,15 +179,15 @@ class RUBYUNO_DLLEXPORT Runtime
 {
     RuntimeImpl *impl;
 public:
-    
+
     Runtime() throw(com::sun::star::uno::RuntimeException);
-    
+
     ~Runtime();
-    
+
     static void initialize(const com::sun::star::uno::Reference < com::sun::star::uno::XComponentContext > &ctx) throw (com::sun::star::uno::RuntimeException);
     static bool isInitialized() throw (com::sun::star::uno::RuntimeException);
     RuntimeImpl * getImpl() const {return impl;}
-    
+
     VALUE any_to_VALUE(const com::sun::star::uno::Any &a) const throw (com::sun::star::uno::RuntimeException);
     com::sun::star::uno::Any value_to_any(VALUE value) const throw (com::sun::star::uno::RuntimeException);
     static com::sun::star::uno::Sequence< com::sun::star::uno::Type > getTypes(const Runtime &runtime, VALUE *value);
@@ -200,58 +198,58 @@ class RUBYUNO_DLLEXPORT Adapter : public cppu::WeakImplHelper2 < com::sun::star:
 {
     VALUE m_wrapped;
     com::sun::star::uno::Sequence< com::sun::star::uno::Type > m_types;
-    
+
     com::sun::star::uno::Sequence< sal_Int16 > getOutParamIndexes(const rtl::OUString &methodName);
-    
+
 public:
     Adapter(const VALUE &obj, const com::sun::star::uno::Sequence< com::sun::star::uno::Type > &types);
-    
+
     virtual ~Adapter();
-    
+
     static com::sun::star::uno::Sequence< sal_Int8 > getUnoTunnelImplementationId();
     static com::sun::star::uno::Sequence< sal_Int8 > getTunnelImplId();
 
     VALUE getWrapped();
     com::sun::star::uno::Sequence< com::sun::star::uno::Type > getWrappedTypes();
-    
+
     virtual com::sun::star::uno::Reference < com::sun::star::beans::XIntrospectionAccess > SAL_CALL getIntrospection() throw (com::sun::star::uno::RuntimeException);
-    
+
     virtual com::sun::star::uno::Any SAL_CALL invoke(
-        const rtl::OUString &  aFunctionName, 
-        const com::sun::star::uno::Sequence < com::sun::star::uno::Any > &aParams, 
-        com::sun::star::uno::Sequence < sal_Int16 > &aOutParamIndex, 
+        const rtl::OUString &  aFunctionName,
+        const com::sun::star::uno::Sequence < com::sun::star::uno::Any > &aParams,
+        com::sun::star::uno::Sequence < sal_Int16 > &aOutParamIndex,
         com::sun::star::uno::Sequence < com::sun::star::uno::Any > &aOutParam)
         throw (
-            com::sun::star::lang::IllegalArgumentException, 
-            com::sun::star::script::CannotConvertException, 
-            com::sun::star::reflection::InvocationTargetException, 
+            com::sun::star::lang::IllegalArgumentException,
+            com::sun::star::script::CannotConvertException,
+            com::sun::star::reflection::InvocationTargetException,
             com::sun::star::uno::RuntimeException);
-    
+
     virtual void SAL_CALL setValue(
-        const rtl::OUString &aPropertyName, 
-        const com::sun::star::uno::Any &aValue) 
+        const rtl::OUString &aPropertyName,
+        const com::sun::star::uno::Any &aValue)
         throw (
-            com::sun::star::beans::UnknownPropertyException, 
-            com::sun::star::script::CannotConvertException, 
-            com::sun::star::reflection::InvocationTargetException, 
+            com::sun::star::beans::UnknownPropertyException,
+            com::sun::star::script::CannotConvertException,
+            com::sun::star::reflection::InvocationTargetException,
             com::sun::star::uno::RuntimeException);
-    
+
     virtual com::sun::star::uno::Any SAL_CALL getValue(
         const rtl::OUString &aPropertyName)
         throw (
-            com::sun::star::beans::UnknownPropertyException, 
+            com::sun::star::beans::UnknownPropertyException,
             com::sun::star::uno::RuntimeException);
-        
+
     virtual sal_Bool SAL_CALL hasMethod(
         const rtl::OUString &aName)
         throw (
             com::sun::star::uno::RuntimeException);
-    
+
     virtual sal_Bool SAL_CALL hasProperty(
         const rtl::OUString &aName)
         throw (
             com::sun::star::uno::RuntimeException);
-    
+
     virtual sal_Int64 SAL_CALL getSomething(
         const com::sun::star::uno::Sequence < sal_Int8 > &aIdentifier)
         throw (

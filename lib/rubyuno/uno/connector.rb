@@ -1,13 +1,13 @@
 # coding: utf-8
 #
 #  Copyright 2011 Tsutomu Uchino
-# 
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-#  
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-#  
+#
 #  Unless required by applicable law or agreed to in writing,
 #  software distributed under the License is distributed on an
 #  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -15,34 +15,34 @@
 #  specific language governing permissions and limitations
 #  under the License.
 
-require 'rubyuno/rubyuno'
+# require 'rubyuno/rubyuno'
 
 module Uno
   Rubyuno.uno_require 'com.sun.star.connection.NoConnectException'
   Rubyuno.uno_require 'com.sun.star.connection.ConnectionSetupException'
-  
+
 #
 # Helps to connect to the office by RPC with UNO protocol.
-# 
-# These environmental variables should be set before to load 'runo' 
+#
+# These environmental variables should be set before to load 'runo'
 # module.
-# URE_BOOTSTRAP specifies to fundamental(rc|.ini) placed under 
+# URE_BOOTSTRAP specifies to fundamental(rc|.ini) placed under
 #   openoffice.org3/program directory.
-# LD_LIBRARY_PATH path to URE library and program directory of the office. 
-# 
+# LD_LIBRARY_PATH path to URE library and program directory of the office.
+#
   module Connector
-  
+
     class NoConnectionError < StandardError
     end
-    
+
     PIPE_NAME_PREFIX = "rubypipe_"
-    
+
     @@sleep_time = 2.0
     @@retry = 5
-    
+
     attr_accessor :sleep_time, :retry
-    
-    # Read Professional UNO chapter of Developer's Guide about 
+
+    # Read Professional UNO chapter of Developer's Guide about
     # UNO Remote protocol.
     def self.bootstrap(options = {})
       options = {
@@ -80,7 +80,7 @@ module Uno
 
       return c
     end
-    
+
     def self.connect(url, resolver = nil)
       resolver = self.resolver_get unless resolver
       return resolver.resolve(url)
